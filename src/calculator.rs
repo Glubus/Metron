@@ -26,6 +26,28 @@ pub trait Rating: std::fmt::Debug {
 pub trait Calculator {
     type Output: Rating;
 
+    /// The name of the calculator.
+    const NAME: &str;
+    /// The version of the calculator.
+    const VERSION: &str;
+    /// The game this calculator is designed for.
+    const GAME: &str;
+
+    /// Returns the human-readable name of the calculator (e.g., "MinaCalc").
+    fn name(&self) -> &str {
+        Self::NAME
+    }
+
+    /// Returns the version of the calculator algorithm (e.g., "5.15").
+    fn version(&self) -> &str {
+        Self::VERSION
+    }
+
+    /// Returns the game this calculator is designed for (e.g., "osu!mania").
+    fn game(&self) -> &str {
+        Self::GAME
+    }
+
     /// Calculates the rating for a given chart.
     fn calculate(&self, chart: &RoxChart) -> Result<Self::Output, CalculatorError>;
 }
@@ -47,39 +69,38 @@ mod tests {
     impl Calculator for MockCalculator {
         type Output = MockRating;
 
+        const NAME: &str = "MockCalc";
+        const VERSION: &str = "1.0.0";
+        const GAME: &str = "GenericVSRG";
+
         fn calculate(&self, _chart: &RoxChart) -> Result<Self::Output, CalculatorError> {
-            // TDD: This implementation is empty or fails on purpose if strict TDD requires a red step first.
-            // But since a trait impl *must* return the type, we usually implement a stub.
-            // To make it "fail" logic-wise, we can assert logic in the test that isn't met yet,
-            // or simply ensure the test infrastructure works.
-            // For this flow, let's implement a "Not Implemented" error or similar if we were implementing a real calc.
-            // Since this is a trait definition, the "test" is proving usage ergonomics.
-
-            // Let's return a dummy value, and the test will assert something specific that implies real logic
-            // OR we just verify compilation and basic contract.
-
-            // "Failing test" in the context of a new trait often means: "Test fails to compile" (which we can't do easily here)
-            // or "Test asserts behavior that isn't there".
-
-            // Let's fail the assertion to prove the test runs.
             Ok(MockRating { stars: 5.0 })
         }
     }
 
     #[test]
-    fn test_calculator_trait_flow() {
+    fn test_mock_calculator_name() {
         let calc = MockCalculator;
-        // We don't have a real RoxChart easily constructible without data,
-        // but let's assume we pass a default one (if Default is implemented) or a minimal one.
-        // RoxChart doesn't derive Default usually, let's see.
-        // For now, let's try to construct a minimal one or use a trick.
-        // Actually, easiest is to use `Default::default()` if available, or just verify the struct exists.
+        assert_eq!(calc.name(), "MockCalc");
+    }
 
+    #[test]
+    fn test_mock_calculator_version() {
+        let calc = MockCalculator;
+        assert_eq!(calc.version(), "1.0.0");
+    }
+
+    #[test]
+    fn test_mock_calculator_game() {
+        let calc = MockCalculator;
+        assert_eq!(calc.game(), "GenericVSRG");
+    }
+
+    #[test]
+    fn test_mock_calculator_calculate() {
+        let calc = MockCalculator;
         let chart = RoxChart::new(4);
-
         let result = calc.calculate(&chart).expect("Calculation should succeed");
-
-        // FAIL: We expect 5 stars, but our stub returns 0.
         assert_eq!(result.stars, 5.0);
     }
 }

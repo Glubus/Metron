@@ -33,6 +33,12 @@ Tests must be structured to maximize confidence while minimizing maintenance cos
    * Unit tests are written **before** implementation.
    * Integration tests are added once behavior is stable.
 
+5. **Single Assertion Principle**:
+
+   * **One Test = One Concept = One Assertion**.
+   * Avoid multiple assertions in a single test function.
+   * If a test fails, the cause must be unambiguous.
+
 ---
 
 ## Test Types

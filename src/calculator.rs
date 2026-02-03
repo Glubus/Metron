@@ -9,6 +9,9 @@ pub enum CalculatorError {
     Calculation(String),
 }
 
+/// Alias for a `Result` with `CalculatorError`.
+pub type CalculatorResult<T> = Result<T, CalculatorError>;
+
 /// A trait representing the result of a difficulty calculation.
 ///
 /// # Why
@@ -26,14 +29,14 @@ pub trait Rating: std::fmt::Debug {
 pub trait Calculator {
     type Output: Rating;
 
-    /// The name of the calculator.
-    const NAME: &str;
-    /// The version of the calculator.
-    const VERSION: &str;
+    /// The name of the calculator (e.g., "`MinaCalc`").
+    const NAME: &'static str;
+    /// The version of the calculator (e.g., "`5.15`").
+    const VERSION: &'static str;
     /// The game this calculator is designed for.
-    const GAME: &str;
+    const GAME: &'static str;
 
-    /// Returns the human-readable name of the calculator (e.g., "MinaCalc").
+    /// Returns the human-readable name of the calculator (e.g., "`MinaCalc`").
     fn name(&self) -> &str {
         Self::NAME
     }
@@ -49,7 +52,10 @@ pub trait Calculator {
     }
 
     /// Calculates the rating for a given chart.
-    fn calculate(&self, chart: &RoxChart) -> Result<Self::Output, CalculatorError>;
+    ///
+    /// # Errors
+    /// Returns a `CalculatorError` if calculation fails (e.g. invalid chart data).
+    fn calculate(&self, chart: &RoxChart) -> CalculatorResult<Self::Output>;
 }
 
 #[cfg(test)]
@@ -73,7 +79,7 @@ mod tests {
         const VERSION: &str = "1.0.0";
         const GAME: &str = "GenericVSRG";
 
-        fn calculate(&self, _chart: &RoxChart) -> Result<Self::Output, CalculatorError> {
+        fn calculate(&self, _chart: &RoxChart) -> CalculatorResult<Self::Output> {
             Ok(MockRating { stars: 5.0 })
         }
     }
@@ -101,6 +107,6 @@ mod tests {
         let calc = MockCalculator;
         let chart = RoxChart::new(4);
         let result = calc.calculate(&chart).expect("Calculation should succeed");
-        assert_eq!(result.stars, 5.0);
+        assert!((result.stars - 5.0).abs() < f32::EPSILON);
     }
 }

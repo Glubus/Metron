@@ -1,7 +1,7 @@
 # Justfile for rhythm-open-exchange
 
 # Use PowerShell on Windows
-set shell := ["pwsh", "-c"]
+
 
 # Default recipe
 default: qa
@@ -20,7 +20,7 @@ fmt:
 
 # Clippy lints
 clippy:
-    cargo clippy --all-targets -- -D warnings
+    cargo clippy --all-targets -- -D warnings -W clippy::pedantic
 
 # Run tests
 test:

@@ -17,6 +17,7 @@ You must never write production code unless you have a failing test that demands
 3.  **Run the test**: It **must fail**.
     *   *Compilation Error* counts as a failure (e.g., function doesn't exist).
     *   *Assertion Error* counts as a failure (e.g., returns wrong value).
+    *   *Assertion Count* must be 1 or 2 at maximum no more one test for one behavior.
 4.  **Confirm the failure**: Verify it failed for the *expected reason*.
 
 ### 🟢 Green: Make it Pass

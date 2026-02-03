@@ -13,3 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `RoxChart` input support via `rhythm-open-exchange`.
 - Transformed project into a library (`lib.rs`).
 - Added `name()`, `version()`, and `game()` metadata methods to `Calculator` trait.
+- Added `CalculatorResult<T>` type alias for standard error handling.
+- Hardened CI with `clippy::pedantic` lints in `justfile`.
+- Enforced "Single Assertion Principle" in `wiki.wiki/decisions.md`.

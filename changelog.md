@@ -18,4 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hardened CI with `clippy::pedantic` lints in `justfile`.
 - Enforced "Single Assertion Principle" in `wiki.wiki/decisions.md`.
 - **Breaking**: Refactored `Calculator` trait to separate `Difficulty` and `Performance` calculation.
-- Added `osu!mania 2015` reference calculator stub (`src/osu/osu2015`).
+- Added `osu!mania 2018` calculator implementation (`src/osu/osu2018`).
+- Fully ported `osu!mania 2018` difficulty (HitWindow + Strain) and performance logic.
+- **Internal**: Refactored `osu!mania 2018` difficulty into a modular structure (`src/osu/osu2018/difficulty/`).
+- **Internal**: Added unit tests for `evaluators.rs` to ensure strain calculation correctness.

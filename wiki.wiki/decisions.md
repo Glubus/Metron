@@ -28,3 +28,10 @@
 **Impact**: Adds `src/osu/osu2015` module.
 **Workflow**: `feature-add`
 
+## 2026-02-04: osu! 2018 Difficulty Refactor
+
+**Decision**: Refactor `osu2018/difficulty.rs` into a modular structure (`difficulty/` folder).
+**Why**: To improve maintainability, separation of concerns (Strain vs Evaluators), and testability. The current file is becoming too large.
+**Impact**: Internal organizational change for `osu2018` module.
+**Workflow**: `feature-add`
+

@@ -1,1 +1,1 @@
-pub mod osu2015;
+pub mod osu2018;

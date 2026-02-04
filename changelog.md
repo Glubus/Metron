@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Core `Calculator` trait in `src/calculator.rs` defining the interface for rating algorithms.
 - `Rating` trait for flexible output types.
 - `RoxChart` input support via `rhythm-open-exchange`.
@@ -16,3 +17,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `CalculatorResult<T>` type alias for standard error handling.
 - Hardened CI with `clippy::pedantic` lints in `justfile`.
 - Enforced "Single Assertion Principle" in `wiki.wiki/decisions.md`.
+- **Breaking**: Refactored `Calculator` trait to separate `Difficulty` and `Performance` calculation.
+- Added `osu!mania 2015` reference calculator stub (`src/osu/osu2015`).

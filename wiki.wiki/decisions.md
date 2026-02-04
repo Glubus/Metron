@@ -20,3 +20,11 @@
 **Why**: To ensure tests fail unambiguously and to improve diagnosis speed.
 **Impact**: Tests must be granular. CI will eventually enforce this where possible (manual review for now).
 **Workflow**: `rule-testing-pyramid`
+
+## 2026-02-04: osu! 2015 Implementation
+
+**Decision**: Implement the osu!mania 2015 algorithm as a reference calculator.
+**Why**: To validate the `Calculator` trait with a concrete, real-world example.
+**Impact**: Adds `src/osu/osu2015` module.
+**Workflow**: `feature-add`
+

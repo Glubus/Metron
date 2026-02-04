@@ -27,7 +27,8 @@ pub trait Rating: std::fmt::Debug {
 /// - `&self` allows the calculator to hold configuration/state.
 /// - `Output` associated type allows polymorphism on the result type.
 pub trait Calculator {
-    type Output: Rating;
+    type Difficulty: Rating;
+    type Performance: Rating;
 
     /// The name of the calculator (e.g., "`MinaCalc`").
     const NAME: &'static str;
@@ -35,6 +36,8 @@ pub trait Calculator {
     const VERSION: &'static str;
     /// The game this calculator is designed for.
     const GAME: &'static str;
+    /// The year this calculator was released.
+    const YEAR: u32;
 
     /// Returns the human-readable name of the calculator (e.g., "`MinaCalc`").
     fn name(&self) -> &str {
@@ -51,11 +54,22 @@ pub trait Calculator {
         Self::GAME
     }
 
-    /// Calculates the rating for a given chart.
+    /// Returns the year this calculator was released.
+    fn year(&self) ->  &u32 {
+        &Self::YEAR
+    }
+
+    /// Calculates the difficulty for a given chart.
     ///
     /// # Errors
     /// Returns a `CalculatorError` if calculation fails (e.g. invalid chart data).
-    fn calculate(&self, chart: &RoxChart) -> CalculatorResult<Self::Output>;
+    fn calculate_difficulty(&self, chart: &RoxChart) -> CalculatorResult<Self::Difficulty>;
+
+    /// Calculates the performance for a given difficulty and accuracy.
+    ///
+    /// # Errors
+    /// Returns a `CalculatorError` if calculation fails.
+    fn calculate_performance(&self, difficulty: &Self::Difficulty, accuracy: f32) -> CalculatorResult<Self::Performance>;
 }
 
 #[cfg(test)]
@@ -73,14 +87,20 @@ mod tests {
     struct MockCalculator;
 
     impl Calculator for MockCalculator {
-        type Output = MockRating;
+        type Difficulty = MockRating;
+        type Performance = MockRating;
 
-        const NAME: &str = "MockCalc";
-        const VERSION: &str = "1.0.0";
-        const GAME: &str = "GenericVSRG";
+        const NAME: &'static str = "MockCalc";
+        const VERSION: &'static str = "1.0.0";
+        const GAME: &'static str = "GenericVSRG";
+        const YEAR: u32 = 2026;
 
-        fn calculate(&self, _chart: &RoxChart) -> CalculatorResult<Self::Output> {
+        fn calculate_difficulty(&self, _chart: &RoxChart) -> CalculatorResult<Self::Difficulty> {
             Ok(MockRating { stars: 5.0 })
+        }
+
+        fn calculate_performance(&self, _difficulty: &Self::Difficulty, _accuracy: f32) -> CalculatorResult<Self::Performance> {
+             Ok(MockRating { stars: 100.0 })
         }
     }
 
@@ -106,7 +126,11 @@ mod tests {
     fn test_mock_calculator_calculate() {
         let calc = MockCalculator;
         let chart = RoxChart::new(4);
-        let result = calc.calculate(&chart).expect("Calculation should succeed");
-        assert!((result.stars - 5.0).abs() < f32::EPSILON);
+        
+        let diff = calc.calculate_difficulty(&chart).expect("Diff calc failed");
+        assert!((diff.stars - 5.0).abs() < f32::EPSILON);
+
+        let perf = calc.calculate_performance(&diff, 1.0).expect("Perf calc failed");
+        assert!((perf.stars - 100.0).abs() < f32::EPSILON);
     }
 }

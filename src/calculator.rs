@@ -26,11 +26,6 @@ pub trait Rating: std::fmt::Debug {
 /// # Why
 /// - `&self` allows the calculator to hold configuration/state.
 /// - `Output` associated type allows polymorphism on the result type.
-/// The core trait for all difficulty calculation algorithms.
-///
-/// # Why
-/// - `&self` allows the calculator to hold configuration/state.
-/// - `Output` associated type allows polymorphism on the result type.
 pub trait Calculator {
     type DifficultyContext;
     type PerformanceContext;

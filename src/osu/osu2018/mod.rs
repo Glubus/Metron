@@ -20,7 +20,7 @@ pub struct Osu2018;
 impl Calculator for Osu2018 {
     type DifficultyContext = Osu2018DifficultyContext;
     type PerformanceContext = Osu2018PerformanceContext;
-    
+
     type Difficulty = difficulty::Osu2018Difficulty;
     type Performance = performance::Osu2018Performance;
 
@@ -29,11 +29,20 @@ impl Calculator for Osu2018 {
     const GAME: &'static str = "osu!mania";
     const YEAR: u32 = 2018;
 
-    fn calculate_difficulty(&self, chart: &RoxChart, context: &Self::DifficultyContext) -> CalculatorResult<Self::Difficulty> {
+    fn calculate_difficulty(
+        &self,
+        chart: &RoxChart,
+        context: &Self::DifficultyContext,
+    ) -> CalculatorResult<Self::Difficulty> {
         difficulty::calculate(chart, context)
     }
 
-    fn calculate_performance(&self, chart: &RoxChart, difficulty: &Self::Difficulty, context: &Self::PerformanceContext) -> CalculatorResult<Self::Performance> {
+    fn calculate_performance(
+        &self,
+        chart: &RoxChart,
+        difficulty: &Self::Difficulty,
+        context: &Self::PerformanceContext,
+    ) -> CalculatorResult<Self::Performance> {
         performance::calculate(chart, difficulty, context)
     }
 }

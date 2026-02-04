@@ -12,6 +12,7 @@ This skill defines the workflow and mindset for Test Driven Development. It is d
 You must never write production code unless you have a failing test that demands it.
 
 ### 🔴 Red: Write a Failing Test
+
 1.  **Understand the requirement**: What specific behavior are you implementing?
 2.  **Write the test**: Call the function/API as you *wish* it existed.
 3.  **Run the test**: It **must fail**.
@@ -21,6 +22,7 @@ You must never write production code unless you have a failing test that demands
 4.  **Confirm the failure**: Verify it failed for the *expected reason*.
 
 ### 🟢 Green: Make it Pass
+
 1.  **Do the simplest thing**: Write the minimum amount of code to make the test pass.
 2.  **Sin is allowed**: Hardcoding values, copy-pasting, and "ugly" code are acceptable here to get to Green quickly.
 3.  **Run the test**: It must pass.

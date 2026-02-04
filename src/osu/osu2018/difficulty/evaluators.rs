@@ -1,26 +1,28 @@
 use rhythm_open_exchange::RoxChart;
-use std::f32::consts::E;
+use std::f64::consts::E;
 
 pub struct Evaluator;
 
 impl Evaluator {
     // Individual Strain
+    #[must_use]
+    #[allow(clippy::cast_precision_loss)]
     pub fn evaluate_individual(
         chart: &RoxChart,
         _current_idx: usize,
-        current_time: f32,
-        current_end_time: f32,
+        current_time: f64,
+        current_end_time: f64,
         history: &[Option<usize>],
-        clock_rate: f32
-    ) -> f32 {
+        clock_rate: f64,
+    ) -> f64 {
         let mut hold_factor = 1.0;
 
         for &prev_idx_opt in history {
             if let Some(prev_idx) = prev_idx_opt {
                 let prev_note = &chart.notes[prev_idx];
-                let prev_start = prev_note.time_us as f32 / 1_000.0 / clock_rate;
-                let prev_end = prev_start + (prev_note.duration_us() as f32 / 1_000.0 / clock_rate);
-                
+                let prev_start = prev_note.time_us as f64 / 1_000.0 / clock_rate;
+                let prev_end = prev_start + (prev_note.duration_us() as f64 / 1_000.0 / clock_rate);
+
                 // Precision check: definitely bigger ~ > 1ms margin
                 // prev.EndTime > current.EndTime + 1
                 // current.StartTime > prev.StartTime + 1
@@ -35,14 +37,16 @@ impl Evaluator {
     }
 
     // Overall Strain
+    #[allow(clippy::cast_precision_loss)]
+    #[must_use]
     pub fn evaluate_overall(
         chart: &RoxChart,
         _current_idx: usize,
-        current_time: f32,
-        current_end_time: f32,
+        current_time: f64,
+        current_end_time: f64,
         history: &[Option<usize>],
-        clock_rate: f32
-    ) -> f32 {
+        clock_rate: f64,
+    ) -> f64 {
         let mut closest_end_time = (current_end_time - current_time).abs();
         let mut hold_factor = 1.0;
         let mut hold_addition = 0.0;
@@ -51,14 +55,14 @@ impl Evaluator {
         for &prev_idx_opt in history {
             if let Some(prev_idx) = prev_idx_opt {
                 let prev_note = &chart.notes[prev_idx];
-                let prev_start = prev_note.time_us as f32 / 1_000.0 / clock_rate;
-                let prev_end = prev_start + (prev_note.duration_us() as f32 / 1_000.0 / clock_rate);
-                
+                let prev_start = prev_note.time_us as f64 / 1_000.0 / clock_rate;
+                let prev_end = prev_start + (prev_note.duration_us() as f64 / 1_000.0 / clock_rate);
+
                 // Overlap: prev.EndTime > Start + 1 && End > prev.EndTime + 1 && Start > prev.Start + 1
-                let overlap = (prev_end > current_time + 1.0) && 
-                              (current_end_time > prev_end + 1.0) && 
-                              (current_time > prev_start + 1.0);
-                              
+                let overlap = (prev_end > current_time + 1.0)
+                    && (current_end_time > prev_end + 1.0)
+                    && (current_time > prev_start + 1.0);
+
                 if overlap {
                     is_overlapping = true;
                 }
@@ -79,16 +83,16 @@ impl Evaluator {
     }
 }
 
-fn logistic(x: f32, multiplier: f32, midpoint_offset: f32) -> f32 {
+fn logistic(x: f64, multiplier: f64, midpoint_offset: f64) -> f64 {
     1.0 / (1.0 + E.powf(-multiplier * (x - midpoint_offset)))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use approx::assert_abs_diff_eq;
     use rhythm_open_exchange::{auto_decode, RoxChart};
     use rstest::*;
-    use approx::assert_abs_diff_eq;
 
     #[fixture]
     fn chart() -> RoxChart {
@@ -118,7 +122,7 @@ mod tests {
             current_time,
             current_end_time,
             &history,
-            clock_rate
+            clock_rate,
         );
 
         // Base hold factor is 1.0, result is 2.0 * hold_factor
@@ -138,7 +142,7 @@ mod tests {
             current_time,
             current_end_time,
             &history,
-            clock_rate
+            clock_rate,
         );
 
         // No overlap, no hold addition -> (1.0 + 0.0) * 1.0 = 1.0

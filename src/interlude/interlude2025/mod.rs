@@ -56,11 +56,17 @@ impl Calculator for Interlude2025 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use approx::assert_abs_diff_eq;
     use rhythm_open_exchange::auto_decode;
+    use rstest::{fixture, rstest};
 
-    #[test]
-    fn test_calculate_difficulty_integration() {
-        let chart = auto_decode("assets/test.osu").expect("Failed to decode test.osu");
+    #[fixture]
+    fn chart() -> RoxChart {
+        auto_decode("assets/test.osu").expect("Failed to decode test.osu")
+    }
+
+    #[rstest]
+    fn test_calculate_difficulty_integration(chart: RoxChart) {
         let calc = Interlude2025;
         let context = Interlude2025DifficultyContext { clock_rate: Some(100) };
         
@@ -71,8 +77,6 @@ mod tests {
         println!("Calculated Stars: {}", result.stars);
         assert!(result.stars >= 0.0);
         assert!(result.stars.is_finite());
-        
-        // Optional: If we had a known value, we would assert it here.
-        // For now, this proves integration with RoxChart works.
+        assert_abs_diff_eq!(result.stars, 9.120204235501202, epsilon = 0.001);
     }
 }

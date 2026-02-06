@@ -29,7 +29,7 @@ pub trait Rating: std::fmt::Debug {
 pub trait Calculator {
     type DifficultyContext;
     type PerformanceContext;
-    
+
     type Difficulty: Rating;
     type Performance: Rating;
 
@@ -58,7 +58,7 @@ pub trait Calculator {
     }
 
     /// Returns the year this calculator was released.
-    fn year(&self) ->  &u32 {
+    fn year(&self) -> &u32 {
         &Self::YEAR
     }
 
@@ -66,13 +66,22 @@ pub trait Calculator {
     ///
     /// # Errors
     /// Returns a `CalculatorError` if calculation fails (e.g. invalid chart data).
-    fn calculate_difficulty(&self, chart: &RoxChart, context: &Self::DifficultyContext) -> CalculatorResult<Self::Difficulty>;
+    fn calculate_difficulty(
+        &self,
+        chart: &RoxChart,
+        context: &Self::DifficultyContext,
+    ) -> CalculatorResult<Self::Difficulty>;
 
     /// Calculates the performance for a given difficulty and accuracy.
     ///
     /// # Errors
     /// Returns a `CalculatorError` if calculation fails.
-    fn calculate_performance(&self, chart: &RoxChart, difficulty: &Self::Difficulty, context: &Self::PerformanceContext) -> CalculatorResult<Self::Performance>;
+    fn calculate_performance(
+        &self,
+        chart: &RoxChart,
+        difficulty: &Self::Difficulty,
+        context: &Self::PerformanceContext,
+    ) -> CalculatorResult<Self::Performance>;
 }
 
 #[cfg(test)]
@@ -93,7 +102,7 @@ mod tests {
     impl Calculator for MockCalculator {
         type DifficultyContext = ();
         type PerformanceContext = ();
-        
+
         type Difficulty = MockRating;
         type Performance = MockRating;
 
@@ -102,12 +111,21 @@ mod tests {
         const GAME: &'static str = "GenericVSRG";
         const YEAR: u32 = 2026;
 
-        fn calculate_difficulty(&self, _chart: &RoxChart, _context: &Self::DifficultyContext) -> CalculatorResult<Self::Difficulty> {
+        fn calculate_difficulty(
+            &self,
+            _chart: &RoxChart,
+            _context: &Self::DifficultyContext,
+        ) -> CalculatorResult<Self::Difficulty> {
             Ok(MockRating { stars: 5.0 })
         }
 
-        fn calculate_performance(&self, _chart: &RoxChart, _difficulty: &Self::Difficulty, _context: &Self::PerformanceContext) -> CalculatorResult<Self::Performance> {
-             Ok(MockRating { stars: 100.0 })
+        fn calculate_performance(
+            &self,
+            _chart: &RoxChart,
+            _difficulty: &Self::Difficulty,
+            _context: &Self::PerformanceContext,
+        ) -> CalculatorResult<Self::Performance> {
+            Ok(MockRating { stars: 100.0 })
         }
     }
 

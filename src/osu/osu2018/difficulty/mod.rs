@@ -17,7 +17,6 @@ pub struct Osu2018Difficulty {
 
 impl Rating for Osu2018Difficulty {}
 
-
 /// Calculates the difficulty of a map.
 ///
 /// # Errors
@@ -92,7 +91,9 @@ pub fn calculate(
         stars,
         great_hit_window: real_window,
         score_multiplier: 1.0,
-        object_count: u32::try_from(chart.notes.len()).map_err(|_| crate::calculator::CalculatorError::Calculation("Too many notes".to_string()))?,
+        object_count: u32::try_from(chart.notes.len()).map_err(|_| {
+            crate::calculator::CalculatorError::Calculation("Too many notes".to_string())
+        })?,
     })
 }
 

@@ -79,16 +79,13 @@ impl Strain {
 
         // Highest individual logic
         if delta_time <= 1.0 {
-            self.highest_individual = self
-                .highest_individual
-                .max(self.individual[safe_col]);
+            self.highest_individual = self.highest_individual.max(self.individual[safe_col]);
         } else {
             self.highest_individual = self.individual[safe_col];
         }
 
         // Overall Strain
-        self.overall =
-            self.apply_decay(self.overall, delta_time, self.overall_decay_base);
+        self.overall = self.apply_decay(self.overall, delta_time, self.overall_decay_base);
         self.overall += Evaluator::evaluate_overall(
             chart,
             current_idx,

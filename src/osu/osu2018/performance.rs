@@ -36,6 +36,8 @@ pub fn calculate(
 
     let total_value = (strain_value.powf(1.1) + acc_value.powf(1.1)).powf(1.0 / 1.1) * multiplier;
 
+    println!("DEBUG: scaled_score={}, strain_value={}, acc_value={}, total_value={}", scaled_score, strain_value, acc_value, total_value);
+
     Ok(Osu2018Performance {
         pp: total_value,
         strain_value,
@@ -107,7 +109,7 @@ mod tests {
             overall_difficulty: Some(8.0),
         };
         let diff = osu2018_calculate(&chart, &context).expect("Difficulty calculation failed");
-
+        println!("DEBUG: diff={:?}", diff);
         let context = Osu2018PerformanceContext { accuracy: 1.0 };
         let result = calculate(&chart, &diff, &context).expect("Performance calculation failed");
 

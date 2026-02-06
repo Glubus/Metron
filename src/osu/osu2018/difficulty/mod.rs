@@ -35,7 +35,7 @@ pub fn calculate(
     let column_count = chart.key_count() as usize;
 
     // 1. Hit Window Calculation
-    let safe_od : f64 = (20.0 - od_input).clamp(0.0, 20.0);
+    let safe_od: f64 = (10.0 - od_input).clamp(0.0, 10.0);
     let base_window = 34.0 + 3.0 * safe_od;
     let real_window = base_window / clock_rate;
 

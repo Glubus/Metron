@@ -1,5 +1,5 @@
 use self::constants::StrainConstants;
-use self::logic::{clustering, difficulty, fingering, ln, manipulation};
+use self::logic::{difficulty, fingering, ln, manipulation};
 use self::structs::{FingerState, Hand, QuaverDifficulty, StrainSolverData, StrainSolverHitObject};
 use crate::calculator::{Calculator, CalculatorResult};
 use crate::clock_rate::ClockRate;
@@ -48,8 +48,8 @@ impl Calculator for Quaver2025 {
         let constants = StrainConstants::default();
         let clock_rate: f64 = context.clock_rate.into();
 
-        // 1. Initialize Strain Solver Data
-        let mut strain_solver_data = initialize_strain_data(chart, key_count as i32, clock_rate);
+        // 1. Initialize Strain Solver Data (Clustering is now done here)
+        let mut strain_solver_data = initialize_strain_data(chart, key_count as i32, clock_rate, None, &constants);
 
         if strain_solver_data.is_empty() {
             return Ok(QuaverDifficulty { stars: 0.0 });
@@ -70,8 +70,7 @@ impl Calculator for Quaver2025 {
         let average_note_density =
             1000.0 * chart.notes.len() as f64 / (map_len * (-0.5 * clock_rate + 1.5));
 
-        // 3. Process Clustering (Chords)
-        clustering::process_clustering(&mut strain_solver_data, &constants);
+        // 3. Process Clustering (Merged into step 1)
 
         // 4. Process Finger Actions
         fingering::process_finger_actions(
@@ -101,18 +100,14 @@ impl Calculator for Quaver2025 {
             difficulty::calculate_final_difficulty(&mut strain_solver_data, use_fallback)
         } else {
             // First run (Left bias)
-            let mut data_left = initialize_strain_data(chart, key_count as i32, clock_rate);
-            assign_hands(&mut data_left, key_count as i32, Hand::Left);
-            clustering::process_clustering(&mut data_left, &constants);
+            let mut data_left = initialize_strain_data(chart, key_count as i32, clock_rate, Some(Hand::Left), &constants);
             fingering::process_finger_actions(&mut data_left, &constants, average_note_density);
             manipulation::process_manipulation(&mut data_left, &constants, &mut 0.0, &mut 0.0);
             ln::process_ln_layers(&mut data_left, &constants);
             let diff_left = difficulty::calculate_final_difficulty(&mut data_left, use_fallback);
 
             // Second run (Right bias)
-            let mut data_right = initialize_strain_data(chart, key_count as i32, clock_rate);
-            assign_hands(&mut data_right, key_count as i32, Hand::Right);
-            clustering::process_clustering(&mut data_right, &constants);
+            let mut data_right = initialize_strain_data(chart, key_count as i32, clock_rate, Some(Hand::Right), &constants);
             fingering::process_finger_actions(&mut data_right, &constants, average_note_density);
             manipulation::process_manipulation(&mut data_right, &constants, &mut 0.0, &mut 0.0);
             ln::process_ln_layers(&mut data_right, &constants);
@@ -141,48 +136,111 @@ fn initialize_strain_data(
     chart: &RoxChart,
     key_count: i32,
     clock_rate: f64,
+    override_ambiguous_hand: Option<Hand>,
+    constants: &StrainConstants,
 ) -> Vec<StrainSolverData> {
-    let mut data = Vec::with_capacity(chart.notes.len());
+    let mut data: Vec<StrainSolverData> = Vec::with_capacity(chart.notes.len());
+    let mut last_left_idx: Option<usize> = None;
+    let mut last_right_idx: Option<usize> = None;
+    let mut last_ambiguous_idx: Option<usize> = None;
 
-    // Sort notes just in case
+    // Optimization: avoid clone/sort if possible, but for safety in this refactor,
+    // we stick to sorting to ensure time order (vital for clustering).
+    // If we trust RoxChart to be sorted, we could skip this.
+    // For now, let's keep it robust.
     let mut notes = chart.notes.clone();
     notes.sort_by_key(|n| n.time_us);
 
     for note in notes {
-        let lane = note.column as i32 + 1; // 1-indexed for logic ported from C#
+        let lane = note.column as i32 + 1;
         let start_time = note.time_us as f64 / 1000.0 / clock_rate;
         let end_time = (note.time_us + note.duration_us()) as f64 / 1000.0 / clock_rate;
 
-        // Skip scratch key equivalent
-        // In Quaver I believe scratch key is not default in standard modes, but helper said:
-        // if self.map.has_scratch_key() && hit_object.lane == key_count { continue; }
-        // We assume no scratch key for generic RoxChart for now or implement generic way.
+        let mut hit_obj_check = StrainSolverHitObject::new(start_time, lane);
+        hit_obj_check.end_time = end_time; // We just use this for checking fields initially
 
-        let mut hit_obj = StrainSolverHitObject::new(start_time, lane);
-        hit_obj.end_time = end_time;
-
+        // We need the object itself.
+        // Let's use Option to handle move
+        let mut hit_obj_opt = Some(hit_obj_check);
         if let Some(finger) = lane_to_finger(lane, key_count) {
-            hit_obj.finger_state = finger;
+             hit_obj_opt.as_mut().unwrap().finger_state = finger;
+        }
+        // hit_obj_opt is populated.
+
+        // Determine hand
+        let mut hand = Hand::Ambiguous;
+        if let Some(h) = lane_to_hand(lane, key_count) {
+            hand = h;
+        }
+        if hand == Hand::Ambiguous {
+            if let Some(override_hand) = override_ambiguous_hand {
+                hand = override_hand;
+            }
         }
 
-        let mut strain_data = StrainSolverData::new(hit_obj);
+        // Determine which cluster key to check
+        let check_idx = match hand {
+            Hand::Left => last_left_idx,
+            Hand::Right => last_right_idx,
+            Hand::Ambiguous => last_ambiguous_idx,
+        };
 
-        // Initial hand assignment (ambiguous ones stay ambiguous)
-        if let Some(hand) = lane_to_hand(lane, key_count) {
-            strain_data.hand = hand;
+        // Attempt to cluster with the last element of the SAME HAND
+        let mut merged = false;
+
+        if let Some(idx) = check_idx {
+            // We must use get_mut separately to avoid borrow checker issues?
+            // data is a Vec. We can index it.
+            if let Some(last) = data.get_mut(idx) {
+                let hit_obj_ref = hit_obj_opt.as_ref().unwrap();
+                let ms_diff = hit_obj_ref.start_time - last.start_time;
+
+                // Note: last.hand == hand is guaranteed by our index tracking
+                if ms_diff.abs() <= constants.chord_clump_tolerance_ms {
+                    // Merge
+                    let mut duplicate = false;
+                    for existing in &last.hit_objects {
+                        if existing.finger_state == hit_obj_ref.finger_state {
+                            duplicate = true;
+                            break;
+                        }
+                    }
+
+                    if !duplicate {
+                        last.hit_objects.push(hit_obj_opt.take().unwrap());
+                    } else {
+                        // Discard
+                        hit_obj_opt = None;
+                    }
+                    merged = true;
+                }
+            }
         }
 
-        data.push(strain_data);
+        if !merged {
+            // If not merged, we must have the object (it wasn't moved or discarded)
+            if let Some(hit_obj) = hit_obj_opt {
+                 let mut strain_data = StrainSolverData::new(hit_obj);
+                 strain_data.hand = hand;
+                 data.push(strain_data);
+
+                 // Update index
+                 let new_idx = data.len() - 1;
+                 match hand {
+                    Hand::Left => last_left_idx = Some(new_idx),
+                    Hand::Right => last_right_idx = Some(new_idx),
+                    Hand::Ambiguous => last_ambiguous_idx = Some(new_idx),
+                 }
+            }
+        }
     }
+
+    // Solve finger states
+    for d in &mut data {
+        d.solve_finger_state();
+    }
+
     data
-}
-
-fn assign_hands(data: &mut [StrainSolverData], _key_count: i32, assume_hand: Hand) {
-    for d in data.iter_mut() {
-        if d.hand == Hand::Ambiguous {
-            d.hand = assume_hand;
-        }
-    }
 }
 
 // Logic from helpers.rs ported here

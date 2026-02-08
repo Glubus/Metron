@@ -80,13 +80,18 @@ fn create_difficulty_bins(
     while current_time_int < end_int {
         let bin_end = (current_time_int + step_int) as f64;
 
-        let values_in_bin: Vec<&StrainSolverData> = if use_fallback {
+        let (total_strain, count) = if use_fallback {
             // Fallback for odd key counts: naive iteration
             let bin_start = current_time_int as f64;
-            strain_solver_data
-                .iter()
-                .filter(|s| s.start_time >= bin_start && s.start_time < bin_end)
-                .collect()
+            let mut sum = 0.0;
+            let mut cnt = 0;
+            for s in strain_solver_data {
+                if s.start_time >= bin_start && s.start_time < bin_end {
+                    sum += s.total_strain_value;
+                    cnt += 1;
+                }
+            }
+            (sum, cnt)
         } else {
             // Optimized binning for even key counts
             while right_index < strain_solver_data.len().saturating_sub(1)
@@ -103,22 +108,18 @@ fn create_difficulty_bins(
 
             // Slice from left to right (inclusive)
             if right_index >= left_index {
-                strain_solver_data[left_index..=right_index]
-                    .iter()
-                    .collect()
+                let slice = &strain_solver_data[left_index..=right_index];
+                let sum: f64 = slice.iter().map(|s| s.total_strain_value).sum();
+                (sum, slice.len())
             } else {
-                Vec::new()
+                (0.0, 0)
             }
         };
 
-        let average_rating = if values_in_bin.is_empty() {
+        let average_rating = if count == 0 {
             0.0
         } else {
-            values_in_bin
-                .iter()
-                .map(|s| s.total_strain_value)
-                .sum::<f64>()
-                / values_in_bin.len() as f64
+            total_strain / count as f64
         };
 
         bins.push(average_rating);

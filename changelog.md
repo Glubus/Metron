@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Split `quaver2025` difficulty logic into modular files (`clustering`, `fingering`, `manipulation`, `ln`, `difficulty`).
 - Renamed `rate` to `clock_rate` in `QuaverDifficultyContext` and enforced usage of `ClockRate` type.
 
+### Performance
+
+- **Quaver 2025 Optimization**: Improved difficulty calculation speed by ~20x (0.5s for 10k charts vs ~11s).
+  - Refactored clustering algorithm from O(N^2) to O(N) with correct interleaved note handling.
+  - Eliminated intermediate vector allocations in binning logic.
+  - Fused initialization and clustering passes to improve cache locality.
+
 ### Added
 
 - **Quaver 2025 Calculator**: Implemented the Quaver 2025 difficulty calculator (`quaver2025`), porting the official C# logic to Rust with `f64` precision.

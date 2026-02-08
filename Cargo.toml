@@ -11,5 +11,11 @@ tracing = "0.1.44"
 
 [dev-dependencies]
 approx = "0.5.1"
+criterion = "0.8.2"
 pretty_assertions = "1.4.1"
+rayon = "1.11.0"
 rstest = "0.26.1"
+
+[[bench]]
+name = "calculator_benchmark"
+harness = false

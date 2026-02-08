@@ -1,7 +1,10 @@
 pub mod difficulty;
 pub mod performance;
 
-use crate::{calculator::{Calculator, CalculatorResult}, clock_rate::ClockRate};
+use crate::{
+    calculator::{Calculator, CalculatorResult},
+    clock_rate::ClockRate,
+};
 use rhythm_open_exchange::RoxChart;
 
 #[derive(Debug, Default)]

@@ -36,8 +36,6 @@ pub fn calculate(
 
     let total_value = (strain_value.powf(1.1) + acc_value.powf(1.1)).powf(1.0 / 1.1) * multiplier;
 
-    println!("DEBUG: scaled_score={}, strain_value={}, acc_value={}, total_value={}", scaled_score, strain_value, acc_value, total_value);
-
     Ok(Osu2018Performance {
         pp: total_value,
         strain_value,
@@ -90,9 +88,9 @@ fn compute_accuracy_value(great_hit_window: f64, strain_value: f64, scaled_score
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::osu::osu2018::{
-        difficulty::calculate as osu2018_calculate, Osu2018DifficultyContext,
-    };
+    use crate::{clock_rate::ClockRate, osu::osu2018::{
+        Osu2018DifficultyContext, difficulty::calculate as osu2018_calculate
+    }};
     use approx::assert_abs_diff_eq;
     use rhythm_open_exchange::{auto_decode, RoxChart};
     use rstest::{fixture, rstest};
@@ -105,11 +103,10 @@ mod tests {
     #[rstest]
     fn test_osu2018_performance_calculation(chart: RoxChart) {
         let context = Osu2018DifficultyContext {
-            clock_rate: Some(100),
+            clock_rate: None, // should be equal to 1.0
             overall_difficulty: Some(8.0),
         };
         let diff = osu2018_calculate(&chart, &context).expect("Difficulty calculation failed");
-        println!("DEBUG: diff={:?}", diff);
         let context = Osu2018PerformanceContext { accuracy: 1.0 };
         let result = calculate(&chart, &diff, &context).expect("Performance calculation failed");
 
@@ -119,7 +116,7 @@ mod tests {
     #[rstest]
     fn test_osu2018_performance_calculation_93_71(chart: RoxChart) {
         let context = Osu2018DifficultyContext {
-            clock_rate: Some(100),
+            clock_rate: None,
             overall_difficulty: Some(8.0),
         };
         let diff = osu2018_calculate(&chart, &context).expect("Difficulty calculation failed");
@@ -133,7 +130,7 @@ mod tests {
     #[rstest]
     fn test_osu2018_performance_calculation_clock_rate(chart: RoxChart) {
         let context = Osu2018DifficultyContext {
-            clock_rate: Some(200),
+            clock_rate: Some(ClockRate::from_percentage(200).expect("Valid clock rate")),
             overall_difficulty: Some(8.0),
         };
         let diff = osu2018_calculate(&chart, &context).expect("Difficulty calculation failed");

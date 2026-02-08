@@ -27,7 +27,7 @@ pub fn calculate(
     chart: &RoxChart,
     context: &Osu2018DifficultyContext,
 ) -> crate::calculator::CalculatorResult<Osu2018Difficulty> {
-    let clock_rate = f64::from(context.clock_rate.unwrap_or(100)) / 100.0;
+    let clock_rate = f64::from(context.clock_rate.unwrap_or_default());
 
     // Extract OD/KeyCount
     let od_input = f64::from(context.overall_difficulty.unwrap_or(5.0));
@@ -99,6 +99,8 @@ pub fn calculate(
 
 #[cfg(test)]
 mod tests {
+    use crate::clock_rate::ClockRate;
+
     use super::*;
     use approx::assert_abs_diff_eq;
     use rhythm_open_exchange::auto_decode;
@@ -112,7 +114,7 @@ mod tests {
     #[rstest]
     fn test_osu2018_difficulty_calculation(chart: RoxChart) {
         let context = Osu2018DifficultyContext {
-            clock_rate: Some(100),
+            clock_rate: None,
             overall_difficulty: Some(8.0),
         };
         let result = calculate(&chart, &context).expect("Difficulty calculation failed");
@@ -123,7 +125,7 @@ mod tests {
     #[rstest]
     fn test_osu2018_difficulty_clock_rate(chart: RoxChart) {
         let context = Osu2018DifficultyContext {
-            clock_rate: Some(200),
+            clock_rate: Some(ClockRate::from_percentage(200).expect("Valid clock rate")),
             overall_difficulty: Some(8.0),
         };
         let result = calculate(&chart, &context).expect("Difficulty calculation failed");

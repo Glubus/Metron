@@ -1,7 +1,7 @@
 pub mod performance;
 
 use crate::calculator::{Calculator, CalculatorResult};
-use crate::osu::osu2018::{difficulty, difficulty::Osu2018Difficulty, Osu2018DifficultyContext};
+use crate::osu::osu2018::{Osu2018DifficultyContext, difficulty, difficulty::Osu2018Difficulty};
 use rhythm_open_exchange::RoxChart;
 
 #[derive(Debug, Default)]

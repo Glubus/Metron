@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **ClockRate Type**: Introduced dedicated `ClockRate` type in `src/clock_rate.rs` for type-safe clock rate handling across **all calculators**.
+  - Encapsulates clock rate as percentage (100 = normal speed)
+  - Implements `From<ClockRate> for f64` for seamless conversion to multiplier
+  - Validates input range (1-1000%)
+  - Provides `Default` trait for easy fallback to 100%
+  - **Migration**: All calculator contexts (`Osu2018DifficultyContext`, `Interlude2025DifficultyContext`) now use `Option<ClockRate>` instead of raw `Option<u32>`
+  - **Benefits**: Prevents accidental percentage/multiplier confusion, enables future precision improvements without API breakage
 - **osu!mania 2016 Calculator**: Implemented the osu! 2016 performance points algorithm (`osu2016`), reusing 2018 difficulty calculation but with authentic 2016 scoring logic.
 - **Score Input**: Added `score` field to `Osu2016PerformanceContext` to allow precise PP calculation based on score, which is the primary metric for 2016 pp.
 - **Interlude 2025 Calculator**: Implemented the Interlude 2025 difficulty calculator port, including full strain and weighting logic.

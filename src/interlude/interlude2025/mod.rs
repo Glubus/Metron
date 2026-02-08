@@ -4,6 +4,7 @@ pub mod performance;
 pub mod util;
 
 use crate::calculator::{Calculator, CalculatorResult};
+use crate::clock_rate::ClockRate;
 use rhythm_open_exchange::RoxChart;
 
 pub use difficulty::Interlude2025Difficulty;
@@ -11,12 +12,12 @@ pub use performance::Interlude2025Performance;
 
 #[derive(Debug, Default)]
 pub struct Interlude2025DifficultyContext {
-    pub clock_rate: Option<u32>,
+    pub clock_rate: Option<ClockRate>,
 }
 
 #[derive(Debug, Default)]
 pub struct Interlude2025PerformanceContext {
-    pub accuracy: f32,
+    pub replay: i32, // TODO type replay
 }
 
 pub struct Interlude2025;
@@ -38,8 +39,7 @@ impl Calculator for Interlude2025 {
         chart: &RoxChart,
         context: &Self::DifficultyContext,
     ) -> CalculatorResult<Self::Difficulty> {
-        let rate = context.clock_rate.unwrap_or(100) as f32 / 100.0;
-        let stars = difficulty::calculate(chart, rate);
+        let stars = difficulty::calculate(chart, context);
         Ok(Interlude2025Difficulty { stars })
     }
 
@@ -49,7 +49,7 @@ impl Calculator for Interlude2025 {
         _difficulty: &Self::Difficulty,
         _context: &Self::PerformanceContext,
     ) -> CalculatorResult<Self::Performance> {
-        Ok(Interlude2025Performance { pp: 0.0 })
+        Ok(Interlude2025Performance { ratings: 0.0 })
     }
 }
 
@@ -68,15 +68,19 @@ mod tests {
     #[rstest]
     fn test_calculate_difficulty_integration(chart: RoxChart) {
         let calc = Interlude2025;
-        let context = Interlude2025DifficultyContext { clock_rate: Some(100) };
-        
+        let context = Interlude2025DifficultyContext {
+            clock_rate: Some(ClockRate::from_percentage(100).expect("Valid clock rate")),
+        };
+
         // We do not have a reference value yet, but we want to ensure it runs without panicking
         // and returns a finite positive value.
-        let result = calc.calculate_difficulty(&chart, &context).expect("Calculation failed");
-        
+        let result = calc
+            .calculate_difficulty(&chart, &context)
+            .expect("Calculation failed");
+
         println!("Calculated Stars: {}", result.stars);
         assert!(result.stars >= 0.0);
         assert!(result.stars.is_finite());
-        assert_abs_diff_eq!(result.stars, 9.120204235501202, epsilon = 0.001);
+        assert_abs_diff_eq!(result.stars, 9.120_204_235_501_202, epsilon = 0.001);
     }
 }

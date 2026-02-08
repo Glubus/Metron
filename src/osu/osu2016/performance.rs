@@ -59,11 +59,11 @@ pub fn calculate(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::osu::osu2018::{
-        difficulty::calculate as osu2018_calculate, Osu2018DifficultyContext,
-    };
+    use crate::{clock_rate::ClockRate, osu::osu2018::{
+        Osu2018DifficultyContext, difficulty::calculate as osu2018_calculate,
+    }};
     use approx::assert_abs_diff_eq;
-    use rhythm_open_exchange::{auto_decode, RoxChart};
+    use rhythm_open_exchange::{RoxChart, auto_decode};
     use rstest::{fixture, rstest};
 
     #[fixture]
@@ -74,7 +74,7 @@ mod tests {
     #[rstest]
     fn test_osu2016_performance_calculation(chart: RoxChart) {
         let context = Osu2018DifficultyContext {
-            clock_rate: Some(100),
+            clock_rate: None,
             overall_difficulty: Some(8.0),
         };
         let diff = osu2018_calculate(&chart, &context).expect("Difficulty calculation failed");
@@ -92,7 +92,7 @@ mod tests {
     #[rstest]
     fn test_osu2016_performance_calculation_900000_score(chart: RoxChart) {
         let context = Osu2018DifficultyContext {
-            clock_rate: Some(100),
+            clock_rate: None,
             overall_difficulty: Some(8.0),
         };
         let diff = osu2018_calculate(&chart, &context).expect("Difficulty calculation failed");
@@ -110,7 +110,7 @@ mod tests {
     #[rstest]
     fn test_osu2016_performance_calculation_jakads_2016(chart: RoxChart) {
         let context = Osu2018DifficultyContext {
-            clock_rate: Some(100),
+            clock_rate: None,
             overall_difficulty: Some(8.0),
         };
         let diff = osu2018_calculate(&chart, &context).expect("Difficulty calculation failed");
@@ -128,7 +128,7 @@ mod tests {
     #[rstest]
     fn test_osu2016_performance_calculation_dt_score(chart: RoxChart) {
         let context = Osu2018DifficultyContext {
-            clock_rate: Some(150),
+            clock_rate: Some(ClockRate::from_percentage(150).expect("Valid clock rate")),
             overall_difficulty: Some(8.0),
         };
         let diff = osu2018_calculate(&chart, &context).expect("Difficulty calculation failed");

@@ -1,19 +1,26 @@
-use super::constants::*;
+use super::constants::{
+    CURVE_POWER, CURVE_SCALE, JACK_CURVE_CUTOFF, MOST_IMPORTANT_NOTES, OHT_NERF, STRAIN_SCALE,
+    STRAIN_TIME_CAP, STREAM_CURVE_CUTOFF, STREAM_CURVE_CUTOFF2, STREAM_POW, STREAM_SCALE,
+};
 
+#[must_use]
 pub fn weighting_curve(x: f64) -> f64 {
     0.002 + x.powi(4)
 }
 
+#[must_use]
 pub fn ms_to_jack_bpm(delta_ms: f64) -> f64 {
     (15000.0 / delta_ms).min(JACK_CURVE_CUTOFF)
 }
 
+#[must_use]
 pub fn ms_to_stream_bpm(delta_ms: f64) -> f64 {
     let result = 300.0 / (0.02 * delta_ms)
         - 300.0 / (0.02 * delta_ms).powf(STREAM_CURVE_CUTOFF) / STREAM_CURVE_CUTOFF2;
     result.max(0.0)
 }
 
+#[must_use]
 pub fn jack_compensation(jack_delta: f64, stream_delta: f64) -> f64 {
     if stream_delta <= 0.0 {
         return 1.0;
@@ -24,6 +31,7 @@ pub fn jack_compensation(jack_delta: f64, stream_delta: f64) -> f64 {
     log_ratio.max(0.0).sqrt().min(1.0)
 }
 
+#[must_use]
 pub fn calculate_note_total(j: f64, sl: f64, sr: f64) -> f64 {
     (STREAM_SCALE * sl.powf(STREAM_POW))
         .powf(OHT_NERF)
@@ -41,6 +49,7 @@ impl FloatExt for f64 {
     }
 }
 
+#[must_use]
 pub fn strain_func(half_life_ms: f64, current_value: f64, input: f64, delta_ms: f64) -> f64 {
     let decay_rate = 0.5f64.ln() / half_life_ms;
     let decay = (decay_rate * delta_ms.min(STRAIN_TIME_CAP)).exp();
@@ -55,6 +64,7 @@ pub fn strain_func(half_life_ms: f64, current_value: f64, input: f64, delta_ms: 
     b - (b - a) * decay
 }
 
+#[must_use]
 pub fn weighted_overall_difficulty(data: &[f64]) -> f64 {
     let mut data_array: Vec<f64> = data.iter().copied().filter(|&x| x > 0.0).collect();
     data_array.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
@@ -63,11 +73,13 @@ pub fn weighted_overall_difficulty(data: &[f64]) -> f64 {
         return 0.0;
     }
 
+    #[allow(clippy::cast_precision_loss)]
     let length = data_array.len() as f64;
     let mut weight = 0.0;
     let mut total = 0.0;
 
     for (i, &value) in data_array.iter().enumerate() {
+        #[allow(clippy::cast_precision_loss)]
         let position = (i as f64 + MOST_IMPORTANT_NOTES - length) / MOST_IMPORTANT_NOTES;
         let x = position.max(0.0);
 

@@ -1,12 +1,12 @@
 pub mod difficulty;
 pub mod performance;
 
-use crate::calculator::{Calculator, CalculatorResult};
+use crate::{calculator::{Calculator, CalculatorResult}, clock_rate::ClockRate};
 use rhythm_open_exchange::RoxChart;
 
 #[derive(Debug, Default)]
 pub struct Osu2018DifficultyContext {
-    pub clock_rate: Option<u32>,
+    pub clock_rate: Option<ClockRate>,
     pub overall_difficulty: Option<f32>,
 }
 

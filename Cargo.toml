@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+minacalc-rs = { version = "0.4.2", features = ["rox"] }
 rhythm-open-exchange = { version = "0.6.2", features = ["all"] }
 thiserror = "2.0.18"
 tracing = "0.1.44"

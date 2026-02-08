@@ -1,8 +1,8 @@
-use crate::clock_rate::ClockRate;
 use self::constants::StrainConstants;
 use self::logic::{clustering, difficulty, fingering, ln, manipulation};
 use self::structs::{FingerState, Hand, QuaverDifficulty, StrainSolverData, StrainSolverHitObject};
 use crate::calculator::{Calculator, CalculatorResult};
+use crate::clock_rate::ClockRate;
 use rhythm_open_exchange::RoxChart;
 
 pub mod constants;
@@ -100,7 +100,6 @@ impl Calculator for Quaver2025 {
         let stars = if key_count % 2 == 0 {
             difficulty::calculate_final_difficulty(&mut strain_solver_data, use_fallback)
         } else {
-            
             // First run (Left bias)
             let mut data_left = initialize_strain_data(chart, key_count as i32, clock_rate);
             assign_hands(&mut data_left, key_count as i32, Hand::Left);
@@ -138,7 +137,11 @@ impl Calculator for Quaver2025 {
 
 // Helpers
 
-fn initialize_strain_data(chart: &RoxChart, key_count: i32, clock_rate: f64) -> Vec<StrainSolverData> {
+fn initialize_strain_data(
+    chart: &RoxChart,
+    key_count: i32,
+    clock_rate: f64,
+) -> Vec<StrainSolverData> {
     let mut data = Vec::with_capacity(chart.notes.len());
 
     // Sort notes just in case
@@ -263,27 +266,30 @@ mod tests {
     #[rstest]
     fn test_quaver_difficulty_calculation(chart: RoxChart) {
         let calc = Quaver2025;
-        let context = QuaverDifficultyContext { clock_rate: ClockRate::default() };
-        
+        let context = QuaverDifficultyContext {
+            clock_rate: ClockRate::default(),
+        };
+
         let result = calc.calculate_difficulty(&chart, &context);
-        
+
         assert!(result.is_ok());
         let difficulty = result.unwrap();
         println!("Quaver Difficulty: {:?}", difficulty);
-       assert_abs_diff_eq!(difficulty.stars, 29.81354, epsilon = 0.001);
-        }
-    
+        assert_abs_diff_eq!(difficulty.stars, 29.81354, epsilon = 0.001);
+    }
+
     #[rstest]
     fn test_quaver_difficulty_calculation_rate(chart: RoxChart) {
         let calc = Quaver2025;
-        let context = QuaverDifficultyContext { clock_rate: ClockRate::from_percentage(150).unwrap() };
-        
+        let context = QuaverDifficultyContext {
+            clock_rate: ClockRate::from_percentage(150).unwrap(),
+        };
+
         let result = calc.calculate_difficulty(&chart, &context);
-        
+
         assert!(result.is_ok());
         let difficulty = result.unwrap();
         println!("Quaver Difficulty (1.5x): {:?}", difficulty);
         assert_abs_diff_eq!(difficulty.stars, 41.28641, epsilon = 0.001);
     }
 }
-

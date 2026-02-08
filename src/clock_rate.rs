@@ -20,7 +20,7 @@ impl ClockRate {
     /// Default value: normal speed (100%)
     pub const DEFAULT: Self = Self { percentage: 100 };
 
-    /// Valid range for `clock_rate`
+    /// Valid range for clock_rate`
     const MIN_PERCENTAGE: u32 = 1; // 0.01x
     const MAX_PERCENTAGE: u32 = 1000; // 10.0x
 

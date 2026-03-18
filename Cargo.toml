@@ -1,6 +1,6 @@
 
 [package]
-name = "metron"
+name = "metron-rs"
 version = "0.1.0"
 edition = "2024"
 description = "Difficulty and performance calculators for rhythm games (osu!mania, Etterna, Quaver)"

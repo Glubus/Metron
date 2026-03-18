@@ -66,21 +66,22 @@ mod tests {
     }
 
     #[rstest]
-    fn test_calculate_difficulty_integration(chart: RoxChart) {
+    #[case(70,   6.005_243_833_356_738)]
+    #[case(80,   7.025_572_662_735_565)]
+    #[case(90,   8.075_650_522_598_215)]
+    #[case(100,  9.120_204_235_501_205)]
+    #[case(110, 10.106_061_098_546_48)]
+    #[case(120, 11.090_076_508_639_688)]
+    #[case(130, 12.127_759_324_966_58)]
+    #[case(140, 13.205_845_600_614_897)]
+    #[case(150, 14.095_243_032_324_886)]
+    #[case(160, 14.701_744_162_660_29)]
+    fn test_difficulty_at_rate(chart: RoxChart, #[case] rate_pct: u32, #[case] expected: f64) {
         let calc = Interlude2025;
         let context = Interlude2025DifficultyContext {
-            clock_rate: Some(ClockRate::from_percentage(100).expect("Valid clock rate")),
+            clock_rate: Some(ClockRate::from_percentage(rate_pct).unwrap()),
         };
-
-        // We do not have a reference value yet, but we want to ensure it runs without panicking
-        // and returns a finite positive value.
-        let result = calc
-            .calculate_difficulty(&chart, &context)
-            .expect("Calculation failed");
-
-        println!("Calculated Stars: {}", result.stars);
-        assert!(result.stars >= 0.0);
-        assert!(result.stars.is_finite());
-        assert_abs_diff_eq!(result.stars, 9.120_204_235_501_202, epsilon = 0.001);
+        let result = calc.calculate_difficulty(&chart, &context).unwrap();
+        assert_abs_diff_eq!(result.stars, expected, epsilon = 1e-6);
     }
 }

@@ -70,7 +70,7 @@ fn calculate_column_difficulty(
         calculate_trill_difficulty(column, time, last_note_in_column, hand_range, jack_delta);
 
     let note_difficulty = calculate_note_total(j, sl, sr);
-    let updated_strain = strain_func(1575.0, current_strain, note_difficulty, jack_delta.max(0.0));
+    let updated_strain = strain_func(current_strain, note_difficulty, jack_delta.max(0.0));
 
     (note_difficulty, updated_strain)
 }

@@ -1,10 +1,13 @@
 use super::constants::{
-    CURVE_POWER, CURVE_SCALE, JACK_CURVE_CUTOFF, MOST_IMPORTANT_NOTES, OHT_NERF, STRAIN_SCALE,
-    STRAIN_TIME_CAP, STREAM_CURVE_CUTOFF, STREAM_CURVE_CUTOFF2, STREAM_POW, STREAM_SCALE,
+    CURVE_POWER, CURVE_SCALE, JACK_CURVE_CUTOFF, MOST_IMPORTANT_NOTES, STRAIN_SCALE,
+    STRAIN_TIME_CAP, STREAM_CURVE_CUTOFF2, STREAM_SCALE,
 };
 
 // ln(0.5) = -LN_2, precomputed to avoid recomputing per note in strain_func.
 const LN_HALF: f64 = -std::f64::consts::LN_2;
+
+// Decay rate for strain_func — always called with half_life_ms = 1575.0.
+const STRAIN_DECAY_RATE: f64 = LN_HALF / 1575.0;
 
 #[must_use]
 pub fn weighting_curve(x: f64) -> f64 {
@@ -19,7 +22,8 @@ pub fn ms_to_jack_bpm(delta_ms: f64) -> f64 {
 #[must_use]
 pub fn ms_to_stream_bpm(delta_ms: f64) -> f64 {
     let x = 0.02 * delta_ms;
-    let result = 300.0 / x - 300.0 / x.powf(STREAM_CURVE_CUTOFF) / STREAM_CURVE_CUTOFF2;
+    // STREAM_CURVE_CUTOFF = 10.0 → powi(10) instead of powf(10.0)
+    let result = 300.0 / x - 300.0 / x.powi(10) / STREAM_CURVE_CUTOFF2;
     result.max(0.0)
 }
 
@@ -28,40 +32,30 @@ pub fn jack_compensation(jack_delta: f64, stream_delta: f64) -> f64 {
     if stream_delta <= 0.0 {
         return 1.0;
     }
-
-    let ratio = jack_delta / stream_delta;
-    let log_ratio = ratio.log2();
+    let log_ratio = (jack_delta / stream_delta).log2();
     log_ratio.max(0.0).sqrt().min(1.0)
 }
 
 #[must_use]
 pub fn calculate_note_total(j: f64, sl: f64, sr: f64) -> f64 {
-    (STREAM_SCALE * sl.powf(STREAM_POW))
-        .powf(OHT_NERF)
-        .add((STREAM_SCALE * sr.powf(STREAM_POW)).powf(OHT_NERF))
-        .add(j.powf(OHT_NERF))
-        .powf(1.0 / OHT_NERF)
+    // STREAM_POW = 0.5  → sqrt()
+    // OHT_NERF   = 3.0  → powi(3) and cbrt()
+    // STREAM_SCALE = 6.0
+    let sl_term = (STREAM_SCALE * sl.sqrt()).powi(3);
+    let sr_term = (STREAM_SCALE * sr.sqrt()).powi(3);
+    let j_term  = j.powi(3);
+    (sl_term + sr_term + j_term).cbrt()
 }
 
-trait FloatExt {
-    fn add(self, other: Self) -> Self;
-}
-impl FloatExt for f64 {
-    fn add(self, other: Self) -> Self {
-        self + other
-    }
-}
-
+/// Exponential strain decay. `half_life_ms` is always 1575.0 — decay rate precomputed.
 #[must_use]
-pub fn strain_func(half_life_ms: f64, current_value: f64, input: f64, delta_ms: f64) -> f64 {
-    let decay_rate = LN_HALF / half_life_ms;
-    let decay = (decay_rate * delta_ms.min(STRAIN_TIME_CAP)).exp();
+pub fn strain_func(current_value: f64, input: f64, delta_ms: f64) -> f64 {
+    let decay = (STRAIN_DECAY_RATE * delta_ms.min(STRAIN_TIME_CAP)).exp();
     let time_cap_decay = if delta_ms > STRAIN_TIME_CAP {
-        (decay_rate * (delta_ms - STRAIN_TIME_CAP)).exp()
+        (STRAIN_DECAY_RATE * (delta_ms - STRAIN_TIME_CAP)).exp()
     } else {
         1.0
     };
-
     let a = current_value * time_cap_decay;
     let b = input * input * STRAIN_SCALE;
     b - (b - a) * decay
@@ -76,7 +70,6 @@ fn accumulate_weighted(i: usize, value: f64, length: f64, weight: &mut f64, tota
 }
 
 /// Takes ownership of `data` to sort in-place, avoiding an extra allocation.
-/// Caller should pass `strain_data_points` directly (it is consumed after this call).
 /// Data is expected to already be filtered (no zeros) by the caller.
 #[must_use]
 pub fn weighted_overall_difficulty(mut data: Vec<f64>) -> f64 {
@@ -107,6 +100,7 @@ pub fn weighted_overall_difficulty(mut data: Vec<f64>) -> f64 {
 mod tests {
     use super::*;
     use approx::assert_relative_eq;
+    use super::super::constants::JACK_CURVE_CUTOFF;
 
     #[test]
     fn test_weighting_curve() {

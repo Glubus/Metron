@@ -1,11 +1,12 @@
+
 [package]
 name = "metron"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-minacalc-rs = { version = "0.4.2", features = ["rox"] }
-rhythm-open-exchange = { version = "0.6.2", features = ["all"] }
+minacalc-rs = { version = "515" }
+rhythm-open-exchange = { version = "0.6.2", features = ["compression"] }
 thiserror = "2.0.18"
 tracing = "0.1.44"
 
@@ -15,6 +16,21 @@ criterion = "0.8.2"
 pretty_assertions = "1.4.1"
 rayon = "1.11.0"
 rstest = "0.26.1"
+
+[[example]]
+name = "minacalc515"
+
+[[example]]
+name = "quaver2025"
+
+[[example]]
+name = "osu2018"
+
+[[example]]
+name = "osu2016"
+
+[[example]]
+name = "interlude2025"
 
 [[bench]]
 name = "calculator_benchmark"

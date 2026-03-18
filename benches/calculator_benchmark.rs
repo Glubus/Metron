@@ -1,6 +1,7 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::hint::black_box;
 use metron::calculator::Calculator;
+use metron::etterna::minacalc515::{MinaCalc515, MinaCalcDifficultyContext};
 use metron::interlude::interlude2025::{Interlude2025, Interlude2025DifficultyContext};
 use metron::osu::osu2016::Osu2016;
 use metron::osu::osu2018::{Osu2018, Osu2018DifficultyContext};
@@ -57,6 +58,17 @@ fn benchmark_calculators(c: &mut Criterion) {
     group.bench_function("quaver2025", |b| {
         let calc = Quaver2025;
         let context = QuaverDifficultyContext::default();
+        b.iter(|| {
+            (0..BATCH_SIZE).into_par_iter().for_each(|_| {
+                calc.calculate_difficulty(black_box(&chart), black_box(&context))
+                    .expect("Calculation failed");
+            });
+        })
+    });
+
+    group.bench_function("minacalc515", |b| {
+        let calc = MinaCalc515;
+        let context = MinaCalcDifficultyContext::default();
         b.iter(|| {
             (0..BATCH_SIZE).into_par_iter().for_each(|_| {
                 calc.calculate_difficulty(black_box(&chart), black_box(&context))

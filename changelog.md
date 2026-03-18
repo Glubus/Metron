@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Etterna / MinaCalc 515**: Implemented the Etterna difficulty calculator (`src/etterna/minacalc515`) wrapping the `minacalc-rs` C++ bindings.
+  - `calculate_difficulty` uses `CalcMode::Msd` (raw, uncapped — canonical rating as shown on etternaonline.com).
+  - `calculate_performance` uses `CalcMode::Ssr` (score-relative, nerfed — capped at player accuracy).
+  - Both modes are configurable via context (`MinaCalcDifficultyContext.mode`, `MinaCalcPerformanceContext.mode`).
+  - `Calc` instance reused per thread via `thread_local!` to avoid re-allocation on every call.
+  - Shared chart-to-notes conversion in `src/etterna/convert.rs` (reusable across future Etterna versions).
+
+### Performance
+
+- **Interlude 2025 Optimization**: Reduced allocation pressure and removed O(n²) patterns in difficulty calculation.
+  - Replaced `BTreeMap<i64, Vec<...>>` grouping with a single `sort_unstable_by_key` pass.
+  - Eliminated per-row `vec![0.0; key_count]` allocation inside the hot loop.
+  - Replaced inverted column scan (`for k in 0..key_count { .any() }`) with direct note iteration.
+  - Pre-allocated `strain_data_points` with `Vec::with_capacity`.
+  - `weighted_overall_difficulty` now takes `Vec<f64>` by value to sort in-place (zero extra allocation).
+  - Replaced stable `sort_by` with `sort_unstable_by`.
+  - `0.5f64.ln()` replaced with `const LN_HALF = -LN_2`.
+  - Eliminated duplicate `0.02 * delta_ms` computation in `ms_to_stream_bpm`.
+
+### Refactor
+
+- **Interlude 2025**: Extracted all loop bodies >3 lines into named functions for readability (`trill_contribution_for_hand`, `calculate_and_record_column_strain`, `sort_chart_notes`, `accumulate_weighted`).
+
 ### Refactor
 
 - Refactored `quaver2025` difficulty calculation to use `f64` for higher precision.

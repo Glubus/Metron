@@ -3,6 +3,9 @@
 name = "metron"
 version = "0.1.0"
 edition = "2024"
+description = "Difficulty and performance calculators for rhythm games (osu!mania, Etterna, Quaver)"
+license = "MIT"
+repository = "https://github.com/Glubus/Metron"
 
 [dependencies]
 minacalc-rs = { version = "515" }

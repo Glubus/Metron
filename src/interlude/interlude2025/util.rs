@@ -3,6 +3,9 @@ use super::constants::{
     STRAIN_TIME_CAP, STREAM_CURVE_CUTOFF, STREAM_CURVE_CUTOFF2, STREAM_POW, STREAM_SCALE,
 };
 
+// ln(0.5) = -LN_2, precomputed to avoid recomputing per note in strain_func.
+const LN_HALF: f64 = -std::f64::consts::LN_2;
+
 #[must_use]
 pub fn weighting_curve(x: f64) -> f64 {
     0.002 + x.powi(4)
@@ -15,8 +18,8 @@ pub fn ms_to_jack_bpm(delta_ms: f64) -> f64 {
 
 #[must_use]
 pub fn ms_to_stream_bpm(delta_ms: f64) -> f64 {
-    let result = 300.0 / (0.02 * delta_ms)
-        - 300.0 / (0.02 * delta_ms).powf(STREAM_CURVE_CUTOFF) / STREAM_CURVE_CUTOFF2;
+    let x = 0.02 * delta_ms;
+    let result = 300.0 / x - 300.0 / x.powf(STREAM_CURVE_CUTOFF) / STREAM_CURVE_CUTOFF2;
     result.max(0.0)
 }
 
@@ -51,7 +54,7 @@ impl FloatExt for f64 {
 
 #[must_use]
 pub fn strain_func(half_life_ms: f64, current_value: f64, input: f64, delta_ms: f64) -> f64 {
-    let decay_rate = 0.5f64.ln() / half_life_ms;
+    let decay_rate = LN_HALF / half_life_ms;
     let decay = (decay_rate * delta_ms.min(STRAIN_TIME_CAP)).exp();
     let time_cap_decay = if delta_ms > STRAIN_TIME_CAP {
         (decay_rate * (delta_ms - STRAIN_TIME_CAP)).exp()
@@ -64,42 +67,40 @@ pub fn strain_func(half_life_ms: f64, current_value: f64, input: f64, delta_ms: 
     b - (b - a) * decay
 }
 
-#[must_use]
-pub fn weighted_overall_difficulty(data: &[f64]) -> f64 {
-    let mut data_array: Vec<f64> = data.iter().copied().filter(|&x| x > 0.0).collect();
-    data_array.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+fn accumulate_weighted(i: usize, value: f64, length: f64, weight: &mut f64, total: &mut f64) {
+    #[allow(clippy::cast_precision_loss)]
+    let position = (i as f64 + MOST_IMPORTANT_NOTES - length) / MOST_IMPORTANT_NOTES;
+    let w = weighting_curve(position.max(0.0));
+    *weight += w;
+    *total += value * w;
+}
 
-    if data_array.is_empty() {
+/// Takes ownership of `data` to sort in-place, avoiding an extra allocation.
+/// Caller should pass `strain_data_points` directly (it is consumed after this call).
+/// Data is expected to already be filtered (no zeros) by the caller.
+#[must_use]
+pub fn weighted_overall_difficulty(mut data: Vec<f64>) -> f64 {
+    data.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+
+    if data.is_empty() {
         return 0.0;
     }
 
     #[allow(clippy::cast_precision_loss)]
-    let length = data_array.len() as f64;
+    let length = data.len() as f64;
     let mut weight = 0.0;
     let mut total = 0.0;
 
-    for (i, &value) in data_array.iter().enumerate() {
-        #[allow(clippy::cast_precision_loss)]
-        let position = (i as f64 + MOST_IMPORTANT_NOTES - length) / MOST_IMPORTANT_NOTES;
-        let x = position.max(0.0);
-
-        let w = weighting_curve(x);
-        weight += w;
-        total += value * w;
+    for (i, &value) in data.iter().enumerate() {
+        accumulate_weighted(i, value, length, &mut weight, &mut total);
     }
 
     if weight <= 0.0 {
         return 0.0;
     }
 
-    let weighted_average = total / weight;
-    let result = weighted_average.powf(CURVE_POWER) * CURVE_SCALE;
-
-    if result.is_finite() {
-        result
-    } else {
-        0.0
-    }
+    let result = (total / weight).powf(CURVE_POWER) * CURVE_SCALE;
+    if result.is_finite() { result } else { 0.0 }
 }
 
 #[cfg(test)]

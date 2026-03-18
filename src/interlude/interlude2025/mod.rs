@@ -43,14 +43,6 @@ impl Calculator for Interlude2025 {
         Ok(Interlude2025Difficulty { stars })
     }
 
-    fn calculate_performance(
-        &self,
-        _chart: &RoxChart,
-        _difficulty: &Self::Difficulty,
-        _context: &Self::PerformanceContext,
-    ) -> CalculatorResult<Self::Performance> {
-        Ok(Interlude2025Performance { ratings: 0.0 })
-    }
 }
 
 #[cfg(test)]

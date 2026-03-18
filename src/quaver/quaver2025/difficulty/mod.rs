@@ -119,15 +119,6 @@ impl Calculator for Quaver2025 {
         Ok(QuaverDifficulty { stars })
     }
 
-    fn calculate_performance(
-        &self,
-        _chart: &RoxChart,
-        _difficulty: &Self::Difficulty,
-        _context: &Self::PerformanceContext,
-    ) -> CalculatorResult<Self::Performance> {
-        // Placeholder
-        Ok(QuaverDifficulty { stars: 0.0 })
-    }
 }
 
 // Helpers

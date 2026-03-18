@@ -75,13 +75,15 @@ pub trait Calculator {
     /// Calculates the performance for a given difficulty and accuracy.
     ///
     /// # Errors
-    /// Returns a `CalculatorError` if calculation fails.
+    /// Returns a `CalculatorError` if calculation fails or is not implemented.
     fn calculate_performance(
         &self,
-        chart: &RoxChart,
-        difficulty: &Self::Difficulty,
-        context: &Self::PerformanceContext,
-    ) -> CalculatorResult<Self::Performance>;
+        _chart: &RoxChart,
+        _difficulty: &Self::Difficulty,
+        _context: &Self::PerformanceContext,
+    ) -> CalculatorResult<Self::Performance> {
+        Err(CalculatorError::Calculation("not implemented".into()))
+    }
 }
 
 #[cfg(test)]

@@ -9,7 +9,7 @@ pub mod sums;
 pub mod utils;
 
 use crate::calculator::{CalculatorResult, Rating};
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 
 pub use map_data::MapData;
 pub use note::Note as InternalNote;
@@ -58,7 +58,7 @@ fn group_by_column(notes: &[note::Note], k: usize) -> Vec<Vec<note::Note>> {
 }
 
 fn build_map_data(chart: &RoxChart, clock_rate: f64, overall_difficulty: f64) -> MapData {
-    let k = chart.key_count() as usize;
+    let k = chart.key_count as usize;
     let notes = chart_to_notes(chart, clock_rate);
     let long_notes: Vec<note::Note> = notes.iter().filter(|n| n.is_long_note()).copied().collect();
     let notes_by_column = group_by_column(&notes, k);

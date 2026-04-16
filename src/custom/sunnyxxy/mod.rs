@@ -2,7 +2,7 @@ pub mod difficulty;
 
 use crate::calculator::{Calculator, CalculatorResult, Rating};
 use crate::clock_rate::ClockRate;
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 
 pub use difficulty::SunnyxxyDifficulty;
 

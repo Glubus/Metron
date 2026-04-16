@@ -4,7 +4,7 @@ use super::util::{
     calculate_note_total, jack_compensation, ms_to_jack_bpm, ms_to_stream_bpm, strain_func,
     weighted_overall_difficulty,
 };
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 
 #[derive(Debug)]
 pub struct Interlude2025Difficulty {
@@ -111,7 +111,7 @@ pub fn calculate(chart: &RoxChart, context: &Interlude2025DifficultyContext) -> 
         return 0.0;
     }
 
-    let key_count = chart.key_count() as usize;
+    let key_count = chart.key_count as usize;
     if key_count == 0 {
         return 0.0;
     }

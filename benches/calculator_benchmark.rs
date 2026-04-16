@@ -6,7 +6,7 @@ use metron::interlude::interlude2025::{Interlude2025, Interlude2025DifficultyCon
 use metron::osu::osu2016::Osu2016;
 use metron::osu::osu2018::{Osu2018, Osu2018DifficultyContext};
 use metron::quaver::quaver2025::difficulty::{Quaver2025, QuaverDifficultyContext};
-use rhythm_open_exchange::auto_decode;
+use rox_formats::auto_decode;
 use std::time::Duration;
 
 use rayon::prelude::*;

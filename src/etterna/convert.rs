@@ -1,6 +1,6 @@
 use crate::calculator::CalculatorError;
 use minacalc_rs::Note;
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 
 fn add_column_to_current_row(notes: &mut Vec<Note>, column_bit: u32) {
     if let Some(row) = notes.last_mut() {

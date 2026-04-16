@@ -3,7 +3,7 @@ use self::logic::{difficulty, fingering, ln, manipulation};
 use self::structs::{FingerState, Hand, QuaverDifficulty, StrainSolverData, StrainSolverHitObject};
 use crate::calculator::{Calculator, CalculatorResult};
 use crate::clock_rate::ClockRate;
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 
 pub mod constants;
 pub mod logic;
@@ -39,7 +39,7 @@ impl Calculator for Quaver2025 {
         chart: &RoxChart,
         context: &Self::DifficultyContext,
     ) -> CalculatorResult<Self::Difficulty> {
-        let key_count = chart.key_count();
+        let key_count = chart.key_count;
         // Quaver logic is mainly for 4K and 7K but valid for 1-10K
         if key_count == 0 {
             return Ok(QuaverDifficulty { stars: 0.0 });
@@ -302,7 +302,7 @@ fn lane_to_finger(lane: i32, key_count: i32) -> Option<FingerState> {
 mod tests {
     use super::*;
     use approx::assert_abs_diff_eq;
-    use rhythm_open_exchange::auto_decode;
+    use rox_formats::auto_decode;
     use rstest::*;
 
     #[fixture]

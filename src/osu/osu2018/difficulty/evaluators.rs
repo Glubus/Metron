@@ -1,4 +1,4 @@
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 use std::f64::consts::E;
 
 pub struct Evaluator;
@@ -91,7 +91,8 @@ fn logistic(x: f64, multiplier: f64, midpoint_offset: f64) -> f64 {
 mod tests {
     use super::*;
     use approx::assert_abs_diff_eq;
-    use rhythm_open_exchange::{auto_decode, RoxChart};
+    use rox::RoxChart;
+    use rox_formats::auto_decode;
     use rstest::*;
 
     #[fixture]

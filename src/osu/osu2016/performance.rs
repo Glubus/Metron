@@ -1,7 +1,7 @@
 use super::super::osu2018::difficulty::Osu2018Difficulty;
 use super::Osu2016PerformanceContext;
 use crate::calculator::Rating;
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 
 #[derive(Debug)]
 pub struct Osu2016Performance {
@@ -64,7 +64,8 @@ mod tests {
         osu::osu2018::{difficulty::calculate as osu2018_calculate, Osu2018DifficultyContext},
     };
     use approx::assert_abs_diff_eq;
-    use rhythm_open_exchange::{auto_decode, RoxChart};
+    use rox::RoxChart;
+    use rox_formats::auto_decode;
     use rstest::{fixture, rstest};
 
     #[fixture]

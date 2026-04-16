@@ -1,5 +1,5 @@
 use super::evaluators::Evaluator;
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 
 pub struct Strain {
     pub(crate) individual: Vec<f64>,

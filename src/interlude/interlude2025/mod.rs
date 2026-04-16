@@ -5,7 +5,7 @@ pub mod util;
 
 use crate::calculator::{Calculator, CalculatorResult};
 use crate::clock_rate::ClockRate;
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 
 pub use difficulty::Interlude2025Difficulty;
 pub use performance::Interlude2025Performance;
@@ -49,7 +49,7 @@ impl Calculator for Interlude2025 {
 mod tests {
     use super::*;
     use approx::assert_abs_diff_eq;
-    use rhythm_open_exchange::auto_decode;
+    use rox_formats::auto_decode;
     use rstest::{fixture, rstest};
 
     #[fixture]

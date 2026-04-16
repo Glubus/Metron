@@ -10,7 +10,7 @@ A Rust library implementing difficulty and performance calculators for rhythm ga
 | Quaver | Quaver | 2025 | Full strain model |
 | osu!mania | osu!mania | 2018 | HitWindow + strain |
 | osu!mania | osu!mania | 2016 | 2018 difficulty + 2016 PP formula |
-| osu!mania | Interlude | 2025 | Jack/trill strain model |
+| Interlude | Interlude | 2025 | Jack/trill strain model |
 
 ## Usage
 

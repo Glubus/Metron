@@ -31,7 +31,7 @@ pub fn calculate(
 
     // Extract OD/KeyCount
     let od_input = f64::from(context.overall_difficulty.unwrap_or(5.0));
-    let column_count = chart.key_count() as usize;
+    let column_count = chart.key_count as usize;
 
     // 1. Hit Window Calculation
     let safe_od: f64 = (10.0 - od_input).clamp(0.0, 10.0);
@@ -103,7 +103,7 @@ mod tests {
 
     use super::*;
     use approx::assert_abs_diff_eq;
-    use rhythm_open_exchange::auto_decode;
+    use rox_formats::auto_decode;
     use rstest::{fixture, rstest};
 
     #[fixture]

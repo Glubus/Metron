@@ -1,7 +1,7 @@
 use metron_rs::calculator::Calculator;
 use metron_rs::clock_rate::ClockRate;
 use metron_rs::interlude::interlude2025::{Interlude2025, Interlude2025DifficultyContext};
-use rhythm_open_exchange::auto_decode;
+use rox_formats::auto_decode;
 
 const RATES: &[u32] = &[70, 80, 90, 100, 110, 120, 130, 140, 150, 160];
 

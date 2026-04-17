@@ -49,7 +49,7 @@ impl Calculator for Interlude2025 {
 mod tests {
     use super::*;
     use approx::assert_abs_diff_eq;
-    use rhythm_open_exchange::auto_decode;
+    use rox_formats::auto_decode;
     use rstest::{fixture, rstest};
 
     #[fixture]

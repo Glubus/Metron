@@ -65,7 +65,7 @@ impl PatternGrid {
         let mut all_timestamps = Vec::new();
         let mut segment_start = 0;
 
-        let key_count = chart.key_count() as usize;
+        let key_count = chart.key_count as usize;
 
         while segment_start < total_time_slots {
             let segment_end = (segment_start + max_time_slices).min(total_time_slots);

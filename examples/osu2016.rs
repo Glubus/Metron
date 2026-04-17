@@ -2,7 +2,7 @@ use metron_rs::calculator::Calculator;
 use metron_rs::clock_rate::ClockRate;
 use metron_rs::osu::osu2016::Osu2016;
 use metron_rs::osu::osu2018::Osu2018DifficultyContext;
-use rhythm_open_exchange::auto_decode;
+use rox_formats::auto_decode;
 
 const RATES: &[u32] = &[70, 80, 90, 100, 110, 120, 130, 140, 150, 160];
 

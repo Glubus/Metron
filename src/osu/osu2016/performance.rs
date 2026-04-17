@@ -64,7 +64,8 @@ mod tests {
         osu::osu2018::{difficulty::calculate as osu2018_calculate, Osu2018DifficultyContext},
     };
     use approx::assert_abs_diff_eq;
-    use rhythm_open_exchange::{auto_decode, RoxChart};
+    use rox_formats::auto_decode;
+    use rhythm_open_exchange::RoxChart;
     use rstest::{fixture, rstest};
 
     #[fixture]

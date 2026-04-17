@@ -94,7 +94,7 @@ impl Calculator for MinaCalc515 {
         chart: &RoxChart,
         context: &Self::DifficultyContext,
     ) -> CalculatorResult<Self::Difficulty> {
-        let key_count = chart.key_count() as u32;
+        let key_count = u32::from(chart.key_count);
         if key_count != 4 && key_count != 6 && key_count != 7 {
             return Err(CalculatorError::Calculation(format!(
                 "Unsupported key count: {key_count}"
@@ -127,7 +127,7 @@ impl Calculator for MinaCalc515 {
         _difficulty: &Self::Difficulty,
         context: &Self::PerformanceContext,
     ) -> CalculatorResult<Self::Performance> {
-        let key_count = chart.key_count() as u32;
+        let key_count = u32::from(chart.key_count);
         if key_count != 4 && key_count != 6 && key_count != 7 {
             return Err(CalculatorError::Calculation(format!(
                 "Unsupported key count: {key_count}"
@@ -157,7 +157,7 @@ impl Calculator for MinaCalc515 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rhythm_open_exchange::auto_decode;
+    use rox_formats::auto_decode;
 
     #[test]
     fn test_minacalc515_difficulty() {

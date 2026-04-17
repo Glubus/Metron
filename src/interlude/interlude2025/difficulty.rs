@@ -111,7 +111,7 @@ pub fn calculate(chart: &RoxChart, context: &Interlude2025DifficultyContext) -> 
         return 0.0;
     }
 
-    let key_count = chart.key_count() as usize;
+    let key_count = chart.key_count as usize;
     if key_count == 0 {
         return 0.0;
     }

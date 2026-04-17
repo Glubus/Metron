@@ -37,7 +37,7 @@ impl Serialize for AnalysisResult {
 }
 
 pub fn analyze(chart: &RoxChart) -> AnalysisResult {
-    let key_count = chart.key_count();
+    let key_count = chart.key_count;
     let max_time_slices = 20;
     let ignore_holds = true;
     let window_size = 4;

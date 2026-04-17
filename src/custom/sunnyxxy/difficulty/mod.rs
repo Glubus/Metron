@@ -63,6 +63,9 @@ fn build_map_data(chart: &RoxChart, clock_rate: f64, overall_difficulty: f64) ->
     let long_notes: Vec<note::Note> = notes.iter().filter(|n| n.is_long_note()).copied().collect();
     let notes_by_column = group_by_column(&notes, k);
     let long_notes_by_column = group_by_column(&long_notes, k);
+    let times_by_column: Vec<Vec<i64>> = notes_by_column.iter()
+        .map(|col| col.iter().map(|n| n.hit_time).collect())
+        .collect();
     let mut tail_sequence = long_notes.clone();
     tail_sequence.sort_unstable_by_key(|n| n.tail_time);
     let total_duration = notes.iter()
@@ -77,6 +80,7 @@ fn build_map_data(chart: &RoxChart, clock_rate: f64, overall_difficulty: f64) ->
         long_notes,
         tail_sequence,
         long_notes_by_column,
+        times_by_column,
         overall_difficulty,
     }
 }

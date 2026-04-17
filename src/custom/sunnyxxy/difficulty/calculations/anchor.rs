@@ -1,37 +1,39 @@
-use std::collections::HashMap;
-
-pub fn compute_anchor(
+/// `key_usage_400` is flat col-major: index = col * n + idx
+pub fn compute_anchor_into(
     k: usize,
-    key_usage_400: &HashMap<usize, Vec<f64>>,
+    key_usage_400: &[f64],
+    n: usize,
     base_corners: &[f64],
-) -> Vec<f64> {
-    let n = base_corners.len();
-    let mut anchor = vec![0.0; n];
+    out: &mut Vec<f64>,
+) {
+    out.resize(n, 0.0);
+    let mut counts = [0.0f64; 10]; // k ≤ 10
     for idx in 0..n {
-        let mut counts: Vec<f64> = (0..k)
-            .map(|col| key_usage_400.get(&col).map(|v| v[idx]).unwrap_or(0.0))
-            .collect();
-        counts.sort_by(|a, b| b.partial_cmp(a).expect("finite values"));
-        let nonzero: Vec<f64> = counts.into_iter().filter(|&x| x != 0.0).collect();
-        if nonzero.len() > 1 {
+        let mut cnt = 0usize;
+        for col in 0..k {
+            let v = key_usage_400[col * n + idx];
+            if v != 0.0 { counts[cnt] = v; cnt += 1; }
+        }
+        if cnt > 1 {
+            counts[..cnt].sort_unstable_by(|a, b| b.partial_cmp(a).expect("finite"));
             let mut walk = 0.0;
             let mut max_walk = 0.0;
-            for i in 0..(nonzero.len() - 1) {
-                let a = nonzero[i];
-                let b = nonzero[i + 1];
+            for i in 0..(cnt - 1) {
+                let a = counts[i];
+                let b = counts[i + 1];
                 let term = a * (1.0 - 4.0 * (0.5 - b / a).powi(2));
                 walk += term;
                 max_walk += a;
             }
-            anchor[idx] = if max_walk.abs() > 0.0 { walk / max_walk } else { 0.0 };
+            out[idx] = if max_walk.abs() > 0.0 { walk / max_walk } else { 0.0 };
         } else {
-            anchor[idx] = 0.0;
+            out[idx] = 0.0;
         }
     }
-    for v in anchor.iter_mut() {
+    for v in out.iter_mut() {
         let a = *v - 0.18;
         let b = 5.0 * (*v - 0.22).powi(3);
         *v = 1.0 + a.min(b);
     }
-    anchor
+    let _ = base_corners;
 }

@@ -1,4 +1,4 @@
-use metron::custom::leyna_recognition;
+use metron_rs::custom::leyna_recognition;
 use rhythm_open_exchange::auto_decode;
 
 fn main() {

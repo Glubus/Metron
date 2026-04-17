@@ -1,6 +1,11 @@
+use std::cell::RefCell;
 use super::super::calculations::ln::ln_sum;
-use super::super::smoothing::{SmoothMode, smooth_on_corners};
+use super::super::smoothing::{SmoothMode, smooth_on_corners_into};
 use super::super::note::Note;
+
+thread_local! {
+    static PBAR_STEP: RefCell<Vec<f64>> = RefCell::new(Vec::new());
+}
 
 fn stream_booster(delta: f64) -> f64 {
     let r = 7.5 / delta;
@@ -12,7 +17,7 @@ fn stream_booster(delta: f64) -> f64 {
 }
 
 fn simultaneous_spike(x: f64) -> f64 {
-    1000.0 * (0.02 * (4.0 / x - 24.0)).powf(0.25)
+    1000.0 * (0.02 * (4.0 / x - 24.0)).sqrt().sqrt()
 }
 
 fn pbar_increment(delta: f64, v: f64, b_val: f64, x: f64, x_inv: f64, x_inv_quarter: f64) -> f64 {
@@ -24,7 +29,7 @@ fn pbar_increment(delta: f64, v: f64, b_val: f64, x: f64, x_inv: f64, x_inv_quar
     } else {
         1.0 - 24.0 * x_inv * (x_over_six * x_over_six)
     };
-    inv_delta * (x_inv_quarter * inner.max(0.0).powf(0.25)) * b_val.max(v)
+    inv_delta * (x_inv_quarter * inner.max(0.0).sqrt().sqrt()) * b_val.max(v)
 }
 
 fn apply_pair_step(p_step: &mut [f64], anchor: &[f64], left: usize, right: usize, inc: f64) {
@@ -64,22 +69,29 @@ pub fn compute_pbar(
     ln_rep: &(Vec<i64>, Vec<f64>, Vec<f64>),
     anchor: &[f64],
     base_corners: &[f64],
-) -> Vec<f64> {
-    let mut p_step = vec![0.0; base_corners.len()];
-    let x_inv = 1.0 / x.max(1e-12);
-    let x_inv_quarter = (0.08 * x_inv).powf(0.25);
-    let mut left_idx = 0usize;
-    let mut right_idx = 0usize;
-    for i in 0..notes.len().saturating_sub(1) {
-        let (h_l, h_r) = (notes[i].hit_time as f64, notes[i + 1].hit_time as f64);
-        if (h_r - h_l).abs() < 1e-9 {
-            handle_simultaneous(&mut p_step, base_corners, &mut left_idx, &mut right_idx, h_l, x);
-        } else {
-            let v = 1.0 + 6.0 * 0.001 * ln_sum(h_l, h_r, ln_rep);
-            process_note_pair(&mut p_step, anchor, base_corners, &mut left_idx, &mut right_idx, h_l, h_r, v, x, x_inv, x_inv_quarter);
+    out: &mut Vec<f64>,
+) {
+    let n = base_corners.len();
+    out.resize(n, 0.0);
+    PBAR_STEP.with(|ps_cell| {
+        let mut p_step = ps_cell.borrow_mut();
+        p_step.resize(n, 0.0);
+        p_step[..n].fill(0.0);
+        let x_inv = 1.0 / x.max(1e-12);
+        let x_inv_quarter = (0.08 * x_inv).sqrt().sqrt();
+        let mut left_idx = 0usize;
+        let mut right_idx = 0usize;
+        for i in 0..notes.len().saturating_sub(1) {
+            let (h_l, h_r) = (notes[i].hit_time as f64, notes[i + 1].hit_time as f64);
+            if (h_r - h_l).abs() < 1e-9 {
+                handle_simultaneous(&mut p_step, base_corners, &mut left_idx, &mut right_idx, h_l, x);
+            } else {
+                let v = 1.0 + 6.0 * 0.001 * ln_sum(h_l, h_r, ln_rep);
+                process_note_pair(&mut p_step, anchor, base_corners, &mut left_idx, &mut right_idx, h_l, h_r, v, x, x_inv, x_inv_quarter);
+            }
         }
-    }
-    smooth_on_corners(base_corners, &p_step, 500.0, 0.001, SmoothMode::Sum)
+        smooth_on_corners_into(base_corners, &p_step, 500.0, 0.001, SmoothMode::Sum, out);
+    });
 }
 
 #[cfg(test)]

@@ -1,22 +1,28 @@
+use mimalloc::MiMalloc;
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
+
 use criterion::{criterion_group, criterion_main, Criterion};
-use std::hint::black_box;
-use metron::calculator::Calculator;
-use metron::etterna::minacalc515::{MinaCalc515, MinaCalcDifficultyContext};
-use metron::interlude::interlude2025::{Interlude2025, Interlude2025DifficultyContext};
-use metron::osu::osu2016::Osu2016;
-use metron::osu::osu2018::{Osu2018, Osu2018DifficultyContext};
-use metron::quaver::quaver2025::difficulty::{Quaver2025, QuaverDifficultyContext};
+use metron_rs::calculator::Calculator;
+use metron_rs::custom::sunnyxxy::{SunnyXXY, SunnyxxyDifficultyContext};
+use metron_rs::etterna::minacalc515::{MinaCalc515, MinaCalcDifficultyContext};
+use metron_rs::interlude::interlude2025::{Interlude2025, Interlude2025DifficultyContext};
+use metron_rs::osu::osu2016::Osu2016;
+use metron_rs::osu::osu2018::{Osu2018, Osu2018DifficultyContext};
+use metron_rs::quaver::quaver2025::difficulty::{Quaver2025, QuaverDifficultyContext};
 use rhythm_open_exchange::auto_decode;
+use std::hint::black_box;
 use std::time::Duration;
 
-use rayon::prelude::*;
 use criterion::Throughput;
+use rayon::prelude::*;
 
 const BATCH_SIZE: u64 = 10000;
+const SUNNYXXY_BATCH: u64 = 100;
 
 fn benchmark_calculators(c: &mut Criterion) {
     let chart = auto_decode("assets/test.osu").expect("Failed to decode test.osu");
-    
+
     let mut group = c.benchmark_group("calculators");
     group.sample_size(10);
     group.measurement_time(Duration::from_secs(5));
@@ -80,5 +86,27 @@ fn benchmark_calculators(c: &mut Criterion) {
     group.finish();
 }
 
-criterion_group!(benches, benchmark_calculators);
+fn benchmark_sunnyxxy(c: &mut Criterion) {
+    let chart = auto_decode("assets/test.osu").expect("Failed to decode test.osu");
+    let calc = SunnyXXY;
+    let context = SunnyxxyDifficultyContext::default();
+
+    let mut group = c.benchmark_group("sunnyxxy");
+    group.sample_size(10);
+    group.measurement_time(Duration::from_secs(30));
+    group.throughput(Throughput::Elements(SUNNYXXY_BATCH));
+
+    group.bench_function("difficulty", |b| {
+        b.iter(|| {
+            (0..SUNNYXXY_BATCH).into_par_iter().for_each(|_| {
+                calc.calculate_difficulty(black_box(&chart), black_box(&context))
+                    .expect("Calculation failed");
+            });
+        })
+    });
+
+    group.finish();
+}
+
+criterion_group!(benches, benchmark_calculators, benchmark_sunnyxxy);
 criterion_main!(benches);

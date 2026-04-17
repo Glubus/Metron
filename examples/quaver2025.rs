@@ -1,6 +1,6 @@
-use metron::calculator::Calculator;
-use metron::clock_rate::ClockRate;
-use metron::quaver::quaver2025::difficulty::{Quaver2025, QuaverDifficultyContext};
+use metron_rs::calculator::Calculator;
+use metron_rs::clock_rate::ClockRate;
+use metron_rs::quaver::quaver2025::difficulty::{Quaver2025, QuaverDifficultyContext};
 use rhythm_open_exchange::auto_decode;
 
 const RATES: &[u32] = &[70, 80, 90, 100, 110, 120, 130, 140, 150, 160];

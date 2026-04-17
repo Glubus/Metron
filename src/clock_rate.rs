@@ -67,7 +67,7 @@ impl Default for ClockRate {
 /// # Examples
 ///
 /// ```
-/// # use metron::clock_rate::ClockRate;
+/// # use metron_rs::clock_rate::ClockRate;
 /// let rate = ClockRate::from_percentage(150).unwrap();
 /// let multiplier: f64 = rate.into();
 /// assert_eq!(multiplier, 1.5);

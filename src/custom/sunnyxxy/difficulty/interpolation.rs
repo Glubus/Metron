@@ -1,30 +1,40 @@
 pub fn interp_values(new_x: &[f64], old_x: &[f64], old_vals: &[f64]) -> Vec<f64> {
-    let mut new_vals = Vec::with_capacity(new_x.len());
+    let mut out = Vec::with_capacity(new_x.len());
+    interp_values_into(new_x, old_x, old_vals, &mut out);
+    out
+}
+
+pub fn interp_values_into(new_x: &[f64], old_x: &[f64], old_vals: &[f64], out: &mut Vec<f64>) {
+    let m = old_x.len();
+    out.clear();
+    let mut ptr = 0usize;
     for &nx in new_x.iter() {
-        let idx = old_x.partition_point(|&ox| ox <= nx);
-        if idx == 0 {
-            new_vals.push(old_vals[0]);
-        } else if idx >= old_x.len() {
-            new_vals.push(*old_vals.last().expect("non-empty"));
+        while ptr + 1 < m && old_x[ptr + 1] <= nx { ptr += 1; }
+        if nx < old_x[0] {
+            out.push(old_vals[0]);
+        } else if nx >= old_x[m - 1] {
+            out.push(old_vals[m - 1]);
         } else {
-            let x0 = old_x[idx - 1];
-            let x1 = old_x[idx];
-            let y0 = old_vals[idx - 1];
-            let y1 = old_vals[idx];
+            let x0 = old_x[ptr];
+            let x1 = old_x[ptr + 1];
             let t = (nx - x0) / (x1 - x0);
-            new_vals.push(y0 + t * (y1 - y0));
+            out.push(old_vals[ptr] + t * (old_vals[ptr + 1] - old_vals[ptr]));
         }
     }
-    new_vals
 }
 
 pub fn step_interp(new_x: &[f64], old_x: &[f64], old_vals: &[f64]) -> Vec<f64> {
-    let mut res = Vec::with_capacity(new_x.len());
+    let mut out = Vec::with_capacity(new_x.len());
+    step_interp_into(new_x, old_x, old_vals, &mut out);
+    out
+}
+
+pub fn step_interp_into(new_x: &[f64], old_x: &[f64], old_vals: &[f64], out: &mut Vec<f64>) {
+    let m = old_x.len();
+    out.clear();
+    let mut ptr = 0usize;
     for &nx in new_x.iter() {
-        let mut idx = old_x.partition_point(|&ox| ox <= nx);
-        if idx > 0 { idx -= 1; }
-        if idx >= old_vals.len() { idx = old_vals.len() - 1; }
-        res.push(old_vals[idx]);
+        while ptr + 1 < m && old_x[ptr + 1] <= nx { ptr += 1; }
+        out.push(old_vals[ptr]);
     }
-    res
 }

@@ -1,6 +1,6 @@
-use metron::calculator::Calculator;
-use metron::clock_rate::ClockRate;
-use metron::etterna::minacalc515::{MinaCalc515, MinaCalcDifficultyContext};
+use metron_rs::calculator::Calculator;
+use metron_rs::clock_rate::ClockRate;
+use metron_rs::etterna::minacalc515::{MinaCalc515, MinaCalcDifficultyContext};
 use rhythm_open_exchange::auto_decode;
 
 const RATES: &[u32] = &[70, 80, 90, 100, 110, 120, 130, 140, 150, 160];

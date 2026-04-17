@@ -19,6 +19,8 @@ pub struct MapData {
     pub tail_sequence: Vec<Note>,
     /// Long notes organized by column
     pub long_notes_by_column: Vec<Vec<Note>>,
+    /// Hit times per column (for rbar)
+    pub times_by_column: Vec<Vec<i64>>,
     /// Overall difficulty
     pub overall_difficulty: f64,
 }
@@ -34,6 +36,7 @@ impl MapData {
             long_notes: Vec::new(),
             tail_sequence: Vec::new(),
             long_notes_by_column: Vec::new(),
+            times_by_column: Vec::new(),
             overall_difficulty: 0.0,
         }
     }

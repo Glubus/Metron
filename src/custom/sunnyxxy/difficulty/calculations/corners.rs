@@ -1,56 +1,68 @@
+use std::cell::RefCell;
 use super::super::note::Note;
 
-pub fn get_corners(t: i64, notes: &[Note]) -> (Vec<f64>, Vec<f64>, Vec<f64>) {
-    let mut base_candidates: Vec<i64> = Vec::with_capacity(notes.len() * 4 + 4);
-    for note in notes.iter() {
-        base_candidates.push(note.hit_time);
-        if note.tail_time >= 0 {
-            base_candidates.push(note.tail_time);
-        }
-    }
-    let snapshot_len = base_candidates.len();
-    for i in 0..snapshot_len {
-        let s = base_candidates[i];
-        base_candidates.push(s + 501);
-        base_candidates.push(s - 499);
-        base_candidates.push(s + 1);
-    }
-    base_candidates.push(0);
-    base_candidates.push(t);
-    base_candidates.retain(|&s| 0 <= s && s <= t);
-    base_candidates.sort_unstable();
-    base_candidates.dedup();
-    let corners_base_vec = base_candidates;
+thread_local! {
+    static CORNERS_BASE_I64: RefCell<Vec<i64>> = RefCell::new(Vec::new());
+    static CORNERS_A_I64: RefCell<Vec<i64>> = RefCell::new(Vec::new());
+    static CORNERS_ALL_I64: RefCell<Vec<i64>> = RefCell::new(Vec::new());
+}
 
-    let mut a_candidates: Vec<i64> = Vec::with_capacity(notes.len() * 3 + 2);
-    for note in notes.iter() {
-        a_candidates.push(note.hit_time);
-        if note.tail_time >= 0 {
-            a_candidates.push(note.tail_time);
-        }
-    }
-    let snapshot_a_len = a_candidates.len();
-    for i in 0..snapshot_a_len {
-        let s = a_candidates[i];
-        a_candidates.push(s + 1000);
-        a_candidates.push(s - 1000);
-    }
-    a_candidates.push(0);
-    a_candidates.push(t);
-    a_candidates.retain(|&s| 0 <= s && s <= t);
-    a_candidates.sort_unstable();
-    a_candidates.dedup();
-    let corners_a_vec = a_candidates;
+pub fn get_corners_into(t: i64, notes: &[Note], all_corners: &mut Vec<f64>, base_corners: &mut Vec<f64>, a_corners: &mut Vec<f64>) {
+    CORNERS_BASE_I64.with(|bc_cell| {
+        CORNERS_A_I64.with(|ac_cell| {
+            CORNERS_ALL_I64.with(|all_cell| {
+                let mut base_cands = bc_cell.borrow_mut();
+                let mut a_cands = ac_cell.borrow_mut();
+                let mut all_cands = all_cell.borrow_mut();
 
-    let mut all_corners: Vec<i64> = Vec::with_capacity(corners_base_vec.len() + corners_a_vec.len());
-    all_corners.extend_from_slice(&corners_base_vec);
-    all_corners.extend_from_slice(&corners_a_vec);
-    all_corners.sort_unstable();
-    all_corners.dedup();
+                base_cands.clear();
+                for note in notes.iter() {
+                    base_cands.push(note.hit_time);
+                    if note.tail_time >= 0 { base_cands.push(note.tail_time); }
+                }
+                let snapshot_len = base_cands.len();
+                for i in 0..snapshot_len {
+                    let s = base_cands[i];
+                    base_cands.push(s + 501);
+                    base_cands.push(s - 499);
+                    base_cands.push(s + 1);
+                }
+                base_cands.push(0);
+                base_cands.push(t);
+                base_cands.retain(|&s| 0 <= s && s <= t);
+                base_cands.sort_unstable();
+                base_cands.dedup();
 
-    (
-        all_corners.into_iter().map(|v| v as f64).collect(),
-        corners_base_vec.into_iter().map(|v| v as f64).collect(),
-        corners_a_vec.into_iter().map(|v| v as f64).collect(),
-    )
+                a_cands.clear();
+                for note in notes.iter() {
+                    a_cands.push(note.hit_time);
+                    if note.tail_time >= 0 { a_cands.push(note.tail_time); }
+                }
+                let snapshot_a_len = a_cands.len();
+                for i in 0..snapshot_a_len {
+                    let s = a_cands[i];
+                    a_cands.push(s + 1000);
+                    a_cands.push(s - 1000);
+                }
+                a_cands.push(0);
+                a_cands.push(t);
+                a_cands.retain(|&s| 0 <= s && s <= t);
+                a_cands.sort_unstable();
+                a_cands.dedup();
+
+                all_cands.clear();
+                all_cands.extend_from_slice(&base_cands);
+                all_cands.extend_from_slice(&a_cands);
+                all_cands.sort_unstable();
+                all_cands.dedup();
+
+                all_corners.clear();
+                all_corners.extend(all_cands.iter().map(|&v| v as f64));
+                base_corners.clear();
+                base_corners.extend(base_cands.iter().map(|&v| v as f64));
+                a_corners.clear();
+                a_corners.extend(a_cands.iter().map(|&v| v as f64));
+            })
+        })
+    })
 }

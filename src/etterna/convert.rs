@@ -1,6 +1,6 @@
 use crate::calculator::CalculatorError;
 use minacalc_rs::Note;
-use rhythm_open_exchange::RoxChart;
+use rhythm_open_exchange::{NoteType, RoxChart};
 
 fn add_column_to_current_row(notes: &mut Vec<Note>, column_bit: u32) {
     if let Some(row) = notes.last_mut() {
@@ -26,23 +26,32 @@ fn merge_sorted_pairs_into_notes(pairs: Vec<(i64, u32)>) -> Vec<Note> {
     notes
 }
 
-/// Converts a ROX chart to MinaCalc notes, applying an optional clock rate.
+/// Converts a ROX chart to MinaCalc notes at the chart's native timestamps.
 ///
 /// Notes at the same timestamp are merged via bitmask OR, matching Etterna's
 /// internal row representation.
 ///
+/// MinaCalc receives the desired music rate separately in `calc_at_rate` and
+/// applies that rate internally. Pre-scaling timestamps here would apply the
+/// requested rate twice.
+///
 /// Uses sort + linear merge instead of HashMap to avoid hashing overhead.
-pub fn chart_to_notes(chart: &RoxChart, clock_rate: f64) -> Result<Vec<Note>, CalculatorError> {
+pub fn chart_to_notes(chart: &RoxChart) -> Result<Vec<Note>, CalculatorError> {
     if chart.notes.is_empty() {
         return Err(CalculatorError::Calculation("Chart has no notes".into()));
     }
 
-    // Scale and collect (time, column_bit) pairs, then sort by time.
+    // Collect playable (time, column_bit) pairs, then sort by time. Mines are
+    // not playable notes and must not contribute to MinaCalc rows.
     let mut pairs: Vec<(i64, u32)> = chart
         .notes
         .iter()
-        .map(|n| ((n.time_us as f64 / clock_rate) as i64, 1u32 << n.column))
+        .filter(|n| !matches!(n.note_type, NoteType::Mine))
+        .map(|n| (n.time_us, 1u32 << n.column))
         .collect();
+    if pairs.is_empty() {
+        return Err(CalculatorError::Calculation("Chart has no playable notes".into()));
+    }
     pairs.sort_unstable_by_key(|&(t, _)| t);
 
     Ok(merge_sorted_pairs_into_notes(pairs))

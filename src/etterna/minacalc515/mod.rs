@@ -102,7 +102,7 @@ impl Calculator for MinaCalc515 {
         }
 
         let clock_rate: f64 = context.clock_rate.into();
-        let notes = chart_to_notes(chart, clock_rate)?;
+        let notes = chart_to_notes(chart)?;
 
         let scores = with_calc(|calc| {
             calc.calc_at_rate(&notes, clock_rate as f32, 0.93, key_count, context.mode)
@@ -135,7 +135,7 @@ impl Calculator for MinaCalc515 {
         }
 
         let clock_rate: f64 = context.clock_rate.into();
-        let notes = chart_to_notes(chart, clock_rate)?;
+        let notes = chart_to_notes(chart)?;
 
         let scores = with_calc(|calc| {
             calc.calc_at_rate(&notes, clock_rate as f32, context.score_goal, key_count, context.mode)
@@ -157,13 +157,19 @@ impl Calculator for MinaCalc515 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::etterna::convert::chart_to_notes;
+    use minacalc_rs::Calc;
+    use rhythm_open_exchange::Note;
     use rox_formats::auto_decode;
+
+    fn test_chart() -> RoxChart {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("assets/test.osu");
+        auto_decode(path).expect("Failed to decode test.osu")
+    }
 
     #[test]
     fn test_minacalc515_difficulty() {
-        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("assets/test.osu");
-        let chart = auto_decode(path).expect("Failed to decode test.osu");
-
+        let chart = test_chart();
         let calc = MinaCalc515;
         let context = MinaCalcDifficultyContext::default();
 
@@ -172,5 +178,41 @@ mod tests {
         let diff = result.unwrap();
         println!("MinaCalc515 overall: {}", diff.overall);
         assert!(diff.overall > 0.0);
+    }
+
+    #[test]
+    fn rated_wrapper_matches_minacalc_direct_at_non_1x_rate() {
+        let chart = test_chart();
+        let notes = chart_to_notes(&chart).expect("convert chart");
+        let direct = Calc::new()
+            .expect("create calc")
+            .calc_at_rate(&notes, 1.5, 0.93, u32::from(chart.key_count), CalcMode::Msd)
+            .expect("direct minacalc");
+
+        let wrapped = MinaCalc515
+            .calculate_difficulty(
+                &chart,
+                &MinaCalcDifficultyContext {
+                    clock_rate: ClockRate::from_percentage(150).unwrap(),
+                    mode: CalcMode::Msd,
+                },
+            )
+            .expect("wrapped minacalc");
+
+        let delta = (wrapped.overall - direct.overall).abs();
+        assert!(delta < 0.0001, "wrapped={} direct={}", wrapped.overall, direct.overall);
+    }
+
+    #[test]
+    fn mines_do_not_contribute_to_minacalc_rows() {
+        let mut chart = RoxChart::new(4);
+        chart.notes.push(Note::tap(0, 0));
+        chart.notes.push(Note::mine(0, 1));
+        chart.notes.push(Note::tap(100_000, 2));
+
+        let notes = chart_to_notes(&chart).expect("convert chart");
+        assert_eq!(notes.len(), 2);
+        assert_eq!(notes[0].notes, 0b0001);
+        assert_eq!(notes[1].notes, 0b0100);
     }
 }

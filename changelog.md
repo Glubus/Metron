@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Daniel Calculator**: Implemented a new custom osu!mania difficulty calculator (`src/custom/daniel`) based on the provided Daniel Python reference, while keeping `sunnyxxy` intact as a separate calculator.
+  - Works on `RoxChart` input, not just `.osu` parsing.
+  - Exposes star rating, smoothed difficulty graph, and the factor curves (`Pressing Intensity`, `Unevenness`, `Same-Column Pressure`, `Cross-Column Pressure`).
+  - Supports `clock_rate` and `overall_difficulty` through `DanielDifficultyContext`.
+
+### Performance
+
+- **Daniel Optimization**: Reworked the Daniel calculator internals to reuse the allocation and cache-friendly patterns already proven in `sunnyxxy`, while keeping Daniel's own formulas and output intact.
+  - Replaced several `Vec<Vec<_>>` intermediates with flat reusable buffers for key usage.
+  - Switched active-column tracking to bitmasks.
+  - Added `interp_values_into`, `step_interp_into`, and `smooth_on_corners_into` style reuse in the Daniel pipeline.
+  - Refactored `jbar` and `xbar` to use scratch buffers instead of rebuilding multiple large temporary vectors on every run.
+
+### Refactor
+
+- **Daniel Structure**: Split Daniel into dedicated modules (`bars`, `calculations`, `interpolation`, `map_data`, `metrics`, `process`, `smoothing`) and reduced the responsibility of the main pipeline functions.
+
 - **Etterna / MinaCalc 515**: Implemented the Etterna difficulty calculator (`src/etterna/minacalc515`) wrapping the `minacalc-rs` C++ bindings.
   - `calculate_difficulty` uses `CalcMode::Msd` (raw, uncapped — canonical rating as shown on etternaonline.com).
   - `calculate_performance` uses `CalcMode::Ssr` (score-relative, nerfed — capped at player accuracy).

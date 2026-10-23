@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0]
+
+### Changed
+
+- **ROX 0.8**: Metron depends on `rhythm-open-exchange` 0.8, whose `RoxChart` is the one callers pass in (breaking: a chart from ROX 0.7 is another type). No calculator code or rating changes.
+
 ## [0.2.0]
 
 ### Changed

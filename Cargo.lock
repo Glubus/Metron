@@ -471,7 +471,7 @@ dependencies = [
 
 [[package]]
 name = "metron-rs"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "approx",
  "criterion",
@@ -774,9 +774,9 @@ checksum = "cadadef317c2f20755a64d7fdc48f9e7178ee6b0e1f7fce33fa60f1d68a276e6"
 
 [[package]]
 name = "rhythm-open-exchange"
-version = "0.7.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7de3ad6b338b3c121db803e3e22c6b515ad9402d66bc1c97a453ae641975afd"
+checksum = "6c74cf109e370e6985284902410e840125aea25b838a2fefa5c3a20bbaba5b10"
 dependencies = [
  "atoi",
  "bitflags",

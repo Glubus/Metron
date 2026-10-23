@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0]
+
+### Added
+
+- **MinaCalc rows like Etterna** (`etterna::rows`, `Rows`, field `rows` of `MinaCalcDifficultyContext` and `MinaCalcPerformanceContext`, default `Rows::Quantized`): every chart reaches MinaCalc on Etterna's 1/48-beat rows, whatever its format. A chart whose notes already sit on rows (StepMania `.sm`/`.ssc` as ROX decodes them, stops and delays included) keeps its times; any other chart (osu! `.osu`, Quaver `.qua`, in raw milliseconds) is snapped onto rows the way Etterna's osu loader does it (rows counted from the first note, BPM breakpoints placed on rows, inherited points scaling the last BPM). The chart's format is not needed: a chart is on rows when at most 10 % of its note times are off the grid of their BPM segment (corpus: on-rows charts at most 2.2 %, osu charts at least 91.9 %). Notes that land on the same row merge into one MinaCalc row. `Rows::Exact` keeps the times as given (0.3.0 behaviour).
+- **Rate mode** (`RateMode`, field `rate_mode` of `MinaCalcDifficultyContext`, default `RateMode::Exact`): `Exact` runs MinaCalc at the requested rate (the real value, and what Etterna does for a score's SSR); `Interpolated` reproduces Etterna's song-select value (`Steps::GetMSD`): the cached rates 0.7 to 2.0 as they are, the linear interpolation of the two neighbours between them, Etterna's extrapolation above 2.0 and below 0.7. It only runs MinaCalc at the one or two grid rates it needs.
+- `MinaCalc527::rates_table`: the 14 cached rates (0.7x to 2.0x) of a chart in one `calc_all_rates` call, to store and interpolate later without the chart.
+- Example `rows_compare`: prints, per chart file, whether `Rows::Quantized` moved any note and the MSD under both modes.
+
+### Changed
+
+- Default MSD of osu! and Quaver charts moves by the row snapping (reference osu! charts: 0.002 to 0.30 MSD, overall; StepMania charts unchanged). `minacalc-rs` 527.1, which no longer aborts on 7K rows with a middle-column note.
+
 ## [0.3.0]
 
 ### Changed

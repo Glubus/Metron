@@ -1,4 +1,5 @@
 use crate::calculator::CalculatorError;
+use crate::etterna::rows::{self, Rows};
 use minacalc_rs::Note;
 use rox::{NoteType, RoxChart};
 
@@ -31,6 +32,10 @@ fn merge_sorted_pairs_into_notes(pairs: Vec<(i64, u32)>) -> Vec<Note> {
 
 /// Converts a ROX chart to MinaCalc notes, timed from the chart's first row.
 ///
+/// Note times come from [`rows::rebased_times`]: a chart already on Etterna's
+/// rows keeps its times, and any other chart is snapped onto them (`Rows::Quantized`).
+/// `Rows::Exact` keeps the times as the chart gives them.
+///
 /// Notes at the same timestamp are merged via bitmask OR, matching Etterna's
 /// internal row representation.
 ///
@@ -45,13 +50,11 @@ fn merge_sorted_pairs_into_notes(pairs: Vec<(i64, u32)>) -> Vec<Note> {
 /// requested rate twice.
 ///
 /// Uses sort + linear merge instead of HashMap to avoid hashing overhead.
-pub fn chart_to_notes(chart: &RoxChart) -> Result<Vec<Note>, CalculatorError> {
+pub fn chart_to_notes(chart: &RoxChart, rows: Rows) -> Result<Vec<Note>, CalculatorError> {
     if chart.notes.is_empty() {
         return Err(CalculatorError::Calculation("Chart has no notes".into()));
     }
 
-    // Collect playable (time, column_bit) pairs, then sort by time. Mines are
-    // not playable notes and must not contribute to MinaCalc rows.
     // Safety first: a column MinaCalc's 32-bit row cannot hold is refused (the shift would overflow).
     if chart
         .notes
@@ -62,11 +65,15 @@ pub fn chart_to_notes(chart: &RoxChart) -> Result<Vec<Note>, CalculatorError> {
             "A note's column is beyond the chart's key count".into(),
         ));
     }
+
+    // Mines are not playable notes and must not contribute to MinaCalc rows.
+    let times = rows::rebased_times(chart, rows);
     let mut pairs: Vec<(i64, u32)> = chart
         .notes
         .iter()
-        .filter(|n| !matches!(n.note_type, NoteType::Mine))
-        .map(|n| (n.time_us, 1u32 << n.column))
+        .zip(times)
+        .filter(|(n, _)| !matches!(n.note_type, NoteType::Mine))
+        .map(|(n, time_us)| (time_us, 1u32 << n.column))
         .collect();
     if pairs.is_empty() {
         return Err(CalculatorError::Calculation(
@@ -74,10 +81,6 @@ pub fn chart_to_notes(chart: &RoxChart) -> Result<Vec<Note>, CalculatorError> {
         ));
     }
     pairs.sort_unstable_by_key(|&(t, _)| t);
-    let first = chart.notes.iter().map(|n| n.time_us).min().unwrap_or(0);
-    for pair in &mut pairs {
-        pair.0 -= first;
-    }
 
     Ok(merge_sorted_pairs_into_notes(pairs))
 }

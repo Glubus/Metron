@@ -49,7 +49,8 @@ impl Calculator for Quaver2025 {
         let clock_rate: f64 = context.clock_rate.into();
 
         // 1. Initialize Strain Solver Data (Clustering is now done here)
-        let mut strain_solver_data = initialize_strain_data(chart, key_count as i32, clock_rate, None, &constants);
+        let mut strain_solver_data =
+            initialize_strain_data(chart, key_count as i32, clock_rate, None, &constants);
 
         if strain_solver_data.is_empty() {
             return Ok(QuaverDifficulty { stars: 0.0 });
@@ -100,14 +101,26 @@ impl Calculator for Quaver2025 {
             difficulty::calculate_final_difficulty(&mut strain_solver_data, use_fallback)
         } else {
             // First run (Left bias)
-            let mut data_left = initialize_strain_data(chart, key_count as i32, clock_rate, Some(Hand::Left), &constants);
+            let mut data_left = initialize_strain_data(
+                chart,
+                key_count as i32,
+                clock_rate,
+                Some(Hand::Left),
+                &constants,
+            );
             fingering::process_finger_actions(&mut data_left, &constants, average_note_density);
             manipulation::process_manipulation(&mut data_left, &constants, &mut 0.0, &mut 0.0);
             ln::process_ln_layers(&mut data_left, &constants);
             let diff_left = difficulty::calculate_final_difficulty(&mut data_left, use_fallback);
 
             // Second run (Right bias)
-            let mut data_right = initialize_strain_data(chart, key_count as i32, clock_rate, Some(Hand::Right), &constants);
+            let mut data_right = initialize_strain_data(
+                chart,
+                key_count as i32,
+                clock_rate,
+                Some(Hand::Right),
+                &constants,
+            );
             fingering::process_finger_actions(&mut data_right, &constants, average_note_density);
             manipulation::process_manipulation(&mut data_right, &constants, &mut 0.0, &mut 0.0);
             ln::process_ln_layers(&mut data_right, &constants);
@@ -118,7 +131,6 @@ impl Calculator for Quaver2025 {
 
         Ok(QuaverDifficulty { stars })
     }
-
 }
 
 // Helpers
@@ -154,7 +166,7 @@ fn initialize_strain_data(
         // Let's use Option to handle move
         let mut hit_obj_opt = Some(hit_obj_check);
         if let Some(finger) = lane_to_finger(lane, key_count) {
-             hit_obj_opt.as_mut().unwrap().finger_state = finger;
+            hit_obj_opt.as_mut().unwrap().finger_state = finger;
         }
         // hit_obj_opt is populated.
 
@@ -211,17 +223,17 @@ fn initialize_strain_data(
         if !merged {
             // If not merged, we must have the object (it wasn't moved or discarded)
             if let Some(hit_obj) = hit_obj_opt {
-                 let mut strain_data = StrainSolverData::new(hit_obj);
-                 strain_data.hand = hand;
-                 data.push(strain_data);
+                let mut strain_data = StrainSolverData::new(hit_obj);
+                strain_data.hand = hand;
+                data.push(strain_data);
 
-                 // Update index
-                 let new_idx = data.len() - 1;
-                 match hand {
+                // Update index
+                let new_idx = data.len() - 1;
+                match hand {
                     Hand::Left => last_left_idx = Some(new_idx),
                     Hand::Right => last_right_idx = Some(new_idx),
                     Hand::Ambiguous => last_ambiguous_idx = Some(new_idx),
-                 }
+                }
             }
         }
     }

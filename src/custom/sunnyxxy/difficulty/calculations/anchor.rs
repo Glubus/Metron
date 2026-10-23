@@ -12,7 +12,10 @@ pub fn compute_anchor_into(
         let mut cnt = 0usize;
         for col in 0..k {
             let v = key_usage_400[col * n + idx];
-            if v != 0.0 { counts[cnt] = v; cnt += 1; }
+            if v != 0.0 {
+                counts[cnt] = v;
+                cnt += 1;
+            }
         }
         if cnt > 1 {
             counts[..cnt].sort_unstable_by(|a, b| b.partial_cmp(a).expect("finite"));
@@ -25,7 +28,11 @@ pub fn compute_anchor_into(
                 walk += term;
                 max_walk += a;
             }
-            out[idx] = if max_walk.abs() > 0.0 { walk / max_walk } else { 0.0 };
+            out[idx] = if max_walk.abs() > 0.0 {
+                walk / max_walk
+            } else {
+                0.0
+            };
         } else {
             out[idx] = 0.0;
         }

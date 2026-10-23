@@ -62,5 +62,9 @@ pub fn analyze(chart: &RoxChart) -> AnalysisResult {
         key_count as usize,
     );
 
-    AnalysisResult { tree: trees, timeline, key_count }
+    AnalysisResult {
+        tree: trees,
+        timeline,
+        key_count,
+    }
 }

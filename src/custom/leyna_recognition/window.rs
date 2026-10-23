@@ -1,6 +1,6 @@
+use super::bpm::TimingAnalyzer;
 use super::grid::PatternGrid;
 use super::types::PatternType;
-use super::bpm::TimingAnalyzer;
 
 pub struct CrossSegmentAnalyzer<'a> {
     grids: &'a [PatternGrid],
@@ -36,7 +36,9 @@ impl<'a> CrossSegmentAnalyzer<'a> {
                 self.unified_times.push(time);
                 let mut row = vec![false; self.key_count];
                 for col in 0..self.key_count {
-                    if grid.get_note(t_idx, col) { row[col] = true; }
+                    if grid.get_note(t_idx, col) {
+                        row[col] = true;
+                    }
                 }
                 self.unified_notes.push(row);
             }
@@ -47,14 +49,24 @@ impl<'a> CrossSegmentAnalyzer<'a> {
         let half = window_size / 2;
         let start = center_idx.saturating_sub(half);
         let end = (center_idx + half + window_size % 2).min(self.unified_notes.len());
-        if start >= end { &[] } else { &self.unified_notes[start..end] }
+        if start >= end {
+            &[]
+        } else {
+            &self.unified_notes[start..end]
+        }
     }
 
     pub fn classify_window(&self, window: &[Vec<bool>]) -> PatternType {
-        if window.len() < 2 { return PatternType::VerySparse; }
+        if window.len() < 2 {
+            return PatternType::VerySparse;
+        }
         let total_notes = Self::count_notes(window);
-        if total_notes == 0 { return PatternType::EmptyRegion; }
-        if self.is_dense_chord(window, total_notes) { return PatternType::DenseChord; }
+        if total_notes == 0 {
+            return PatternType::EmptyRegion;
+        }
+        if self.is_dense_chord(window, total_notes) {
+            return PatternType::DenseChord;
+        }
         let has_jumps = self.detect_jumps(window);
         let has_jacks = self.detect_jacks(window);
         let has_stream = self.detect_stream(window);
@@ -62,7 +74,10 @@ impl<'a> CrossSegmentAnalyzer<'a> {
     }
 
     fn count_notes(window: &[Vec<bool>]) -> usize {
-        window.iter().map(|row| row.iter().filter(|&&b| b).count()).sum()
+        window
+            .iter()
+            .map(|row| row.iter().filter(|&&b| b).count())
+            .sum()
     }
 
     fn is_dense_chord(&self, window: &[Vec<bool>], total_notes: usize) -> bool {
@@ -71,7 +86,9 @@ impl<'a> CrossSegmentAnalyzer<'a> {
     }
 
     fn detect_jumps(&self, window: &[Vec<bool>]) -> bool {
-        window.iter().any(|row| row.iter().filter(|&&b| b).count() >= 2)
+        window
+            .iter()
+            .any(|row| row.iter().filter(|&&b| b).count() >= 2)
     }
 
     fn detect_jacks(&self, window: &[Vec<bool>]) -> bool {
@@ -80,7 +97,9 @@ impl<'a> CrossSegmentAnalyzer<'a> {
             for row in window {
                 if col < row.len() && row[col] {
                     consecutive += 1;
-                    if consecutive >= 2 { return true; }
+                    if consecutive >= 2 {
+                        return true;
+                    }
                 } else {
                     consecutive = 0;
                 }
@@ -94,7 +113,11 @@ impl<'a> CrossSegmentAnalyzer<'a> {
             let cols_t = Self::get_active_cols(&window[t]);
             let cols_next = Self::get_active_cols(&window[t + 1]);
             if !cols_t.is_empty() && !cols_next.is_empty() {
-                if cols_t.iter().any(|c1| cols_next.iter().any(|c2| (*c1 as i32 - *c2 as i32).abs() == 1)) {
+                if cols_t.iter().any(|c1| {
+                    cols_next
+                        .iter()
+                        .any(|c2| (*c1 as i32 - *c2 as i32).abs() == 1)
+                }) {
                     return true;
                 }
             }
@@ -103,7 +126,11 @@ impl<'a> CrossSegmentAnalyzer<'a> {
     }
 
     fn get_active_cols(row: &[bool]) -> Vec<usize> {
-        row.iter().enumerate().filter(|(_, b)| **b).map(|(i, _)| i).collect()
+        row.iter()
+            .enumerate()
+            .filter(|(_, b)| **b)
+            .map(|(i, _)| i)
+            .collect()
     }
 
     fn determine_pattern_type(
@@ -114,13 +141,27 @@ impl<'a> CrossSegmentAnalyzer<'a> {
         has_jacks: bool,
         has_stream: bool,
     ) -> PatternType {
-        if has_jumps && has_jacks { return PatternType::Chordjack; }
-        if has_jumps && has_stream { return PatternType::Jumpstream; }
-        if has_jacks && has_stream { return PatternType::Handstream; }
-        if has_jumps { return PatternType::JumpSection; }
-        if has_jacks { return PatternType::JackSection; }
-        if has_stream { return PatternType::Stream; }
-        if total_notes <= window_len { return PatternType::Light; }
+        if has_jumps && has_jacks {
+            return PatternType::Chordjack;
+        }
+        if has_jumps && has_stream {
+            return PatternType::Jumpstream;
+        }
+        if has_jacks && has_stream {
+            return PatternType::Handstream;
+        }
+        if has_jumps {
+            return PatternType::JumpSection;
+        }
+        if has_jacks {
+            return PatternType::JackSection;
+        }
+        if has_stream {
+            return PatternType::Stream;
+        }
+        if total_notes <= window_len {
+            return PatternType::Light;
+        }
         PatternType::Mixed
     }
 
@@ -134,17 +175,30 @@ impl<'a> CrossSegmentAnalyzer<'a> {
 
             let end_idx = (i + window_size).min(self.unified_times.len());
             let start_time = self.unified_times[i];
-            let end_time = if end_idx > 0 { self.unified_times[end_idx - 1] } else { start_time };
+            let end_time = if end_idx > 0 {
+                self.unified_times[end_idx - 1]
+            } else {
+                start_time
+            };
 
-            let start_time_idx = self.timing.timing_info.partition_point(|tp| tp.timestamp < start_time);
+            let start_time_idx = self
+                .timing
+                .timing_info
+                .partition_point(|tp| tp.timestamp < start_time);
             let mut window_bpms = Vec::new();
             for idx in start_time_idx..self.timing.timing_info.len() {
                 let tp = &self.timing.timing_info[idx];
-                if tp.timestamp > end_time { break; }
-                if tp.bpm > 0.0 { window_bpms.push(tp.bpm); }
+                if tp.timestamp > end_time {
+                    break;
+                }
+                if tp.bpm > 0.0 {
+                    window_bpms.push(tp.bpm);
+                }
             }
 
-            let avg_bpm = if window_bpms.is_empty() { 0.0 } else {
+            let avg_bpm = if window_bpms.is_empty() {
+                0.0
+            } else {
                 window_bpms.iter().sum::<f64>() / window_bpms.len() as f64
             };
 

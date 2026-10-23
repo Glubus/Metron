@@ -6,7 +6,7 @@ use criterion::{Criterion, criterion_group, criterion_main};
 use metron_rs::calculator::Calculator;
 use metron_rs::custom::daniel::{Daniel, DanielDifficultyContext};
 use metron_rs::custom::sunnyxxy::{SunnyXXY, SunnyxxyDifficultyContext};
-use metron_rs::etterna::minacalc515::{MinaCalc515, MinaCalcDifficultyContext};
+use metron_rs::etterna::minacalc527::{MinaCalc527, MinaCalcDifficultyContext};
 use metron_rs::interlude::interlude2025::{Interlude2025, Interlude2025DifficultyContext};
 use metron_rs::osu::osu2016::Osu2016;
 use metron_rs::osu::osu2018::{Osu2018, Osu2018DifficultyContext};
@@ -74,8 +74,8 @@ fn benchmark_calculators(c: &mut Criterion) {
         })
     });
 
-    group.bench_function("minacalc515", |b| {
-        let calc = MinaCalc515;
+    group.bench_function("minacalc527", |b| {
+        let calc = MinaCalc527;
         let context = MinaCalcDifficultyContext::default();
         b.iter(|| {
             (0..BATCH_SIZE).into_par_iter().for_each(|_| {

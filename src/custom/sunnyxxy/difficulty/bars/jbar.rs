@@ -1,6 +1,6 @@
-use std::cell::RefCell;
-use super::super::smoothing::{SmoothMode, smooth_on_corners_into};
 use super::super::note::Note;
+use super::super::smoothing::{SmoothMode, smooth_on_corners_into};
+use std::cell::RefCell;
 
 thread_local! {
     static JBAR_SMOOTH: RefCell<Vec<f64>> = RefCell::new(Vec::new());
@@ -15,32 +15,60 @@ fn jack_nerfer(delta: f64) -> f64 {
     1.0 - 7e-5 / (d2 * d2)
 }
 
-fn compute_column_jack_into(notes: &[Note], base_corners: &[f64], x_quarter: f64, j_col: &mut Vec<f64>, delta_col: &mut Vec<f64>) {
+fn compute_column_jack_into(
+    notes: &[Note],
+    base_corners: &[f64],
+    x_quarter: f64,
+    j_col: &mut Vec<f64>,
+    delta_col: &mut Vec<f64>,
+) {
     let n = base_corners.len();
     j_col.resize(n, 0.0);
     j_col[..n].fill(0.0);
     delta_col.resize(n, 0.0);
     delta_col[..n].fill(1e9);
-    if notes.len() < 2 { return; }
+    if notes.len() < 2 {
+        return;
+    }
     let mut left_idx = 0usize;
     let mut right_idx = 0usize;
     for i in 0..notes.len() - 1 {
         let start = notes[i].hit_time as f64;
         let end = notes[i + 1].hit_time as f64;
-        while left_idx < n && base_corners[left_idx] < start { left_idx += 1; }
-        if right_idx < left_idx { right_idx = left_idx; }
-        while right_idx < n && base_corners[right_idx] < end { right_idx += 1; }
-        if left_idx >= right_idx { continue; }
+        while left_idx < n && base_corners[left_idx] < start {
+            left_idx += 1;
+        }
+        if right_idx < left_idx {
+            right_idx = left_idx;
+        }
+        while right_idx < n && base_corners[right_idx] < end {
+            right_idx += 1;
+        }
+        if left_idx >= right_idx {
+            continue;
+        }
         let delta = 0.001 * (end - start);
         let inv_delta = 1.0 / delta.max(1e-12);
         let val = inv_delta / (delta + 0.11 * x_quarter).max(1e-12);
         let j_val = val * jack_nerfer(delta);
-        for idx in left_idx..right_idx { j_col[idx] = j_val; }
-        for idx in left_idx..right_idx { delta_col[idx] = delta; }
+        for idx in left_idx..right_idx {
+            j_col[idx] = j_val;
+        }
+        for idx in left_idx..right_idx {
+            delta_col[idx] = delta;
+        }
     }
 }
 
-pub fn compute_jbar(k: usize, _t: i64, x: f64, notes_by_column: &[Vec<Note>], base_corners: &[f64], raw_delta: &mut Vec<Vec<f64>>, jbar_out: &mut Vec<f64>) {
+pub fn compute_jbar(
+    k: usize,
+    _t: i64,
+    x: f64,
+    notes_by_column: &[Vec<Note>],
+    base_corners: &[f64],
+    raw_delta: &mut Vec<Vec<f64>>,
+    jbar_out: &mut Vec<f64>,
+) {
     let x_quarter = x.sqrt().sqrt();
     let n = base_corners.len();
     raw_delta.resize_with(k, Vec::new);
@@ -60,8 +88,21 @@ pub fn compute_jbar(k: usize, _t: i64, x: f64, notes_by_column: &[Vec<Note>], ba
                     den_arr[..n].fill(0.0);
 
                     for col in 0..k {
-                        compute_column_jack_into(&notes_by_column[col], base_corners, x_quarter, &mut j_col, &mut delta_col);
-                        smooth_on_corners_into(base_corners, &j_col, 500.0, 0.001, SmoothMode::Sum, &mut smooth_tmp);
+                        compute_column_jack_into(
+                            &notes_by_column[col],
+                            base_corners,
+                            x_quarter,
+                            &mut j_col,
+                            &mut delta_col,
+                        );
+                        smooth_on_corners_into(
+                            base_corners,
+                            &j_col,
+                            500.0,
+                            0.001,
+                            SmoothMode::Sum,
+                            &mut smooth_tmp,
+                        );
                         for i in 0..n {
                             let v = smooth_tmp[i].max(0.0);
                             let w = 1.0 / delta_col[i];
@@ -105,7 +146,10 @@ mod tests {
     fn test_jack_nerfer_always_positive() {
         for delta in [0.01, 0.05, 0.08, 0.1, 0.5, 1.0, 5.0] {
             let n = jack_nerfer(delta);
-            assert!(n > 0.0, "expected positive nerfer for delta={delta}, got {n}");
+            assert!(
+                n > 0.0,
+                "expected positive nerfer for delta={delta}, got {n}"
+            );
         }
     }
 
@@ -144,18 +188,44 @@ mod tests {
         let notes_by_col: Vec<Vec<Note>> = vec![vec![], vec![]];
         let mut raw_delta = Vec::new();
         let mut jbar = Vec::new();
-        compute_jbar(2, 0, 0.09, &notes_by_col, &corners, &mut raw_delta, &mut jbar);
-        assert!(jbar.iter().all(|&v| v == 0.0), "empty notes → jbar all zero");
+        compute_jbar(
+            2,
+            0,
+            0.09,
+            &notes_by_col,
+            &corners,
+            &mut raw_delta,
+            &mut jbar,
+        );
+        assert!(
+            jbar.iter().all(|&v| v == 0.0),
+            "empty notes → jbar all zero"
+        );
     }
 
     #[test]
     fn test_compute_jbar_positive_with_notes() {
         let corners: Vec<f64> = (0..500).map(|i| i as f64).collect();
-        let notes: Vec<Note> = vec![Note::simple(0, 50), Note::simple(0, 150), Note::simple(0, 300)];
+        let notes: Vec<Note> = vec![
+            Note::simple(0, 50),
+            Note::simple(0, 150),
+            Note::simple(0, 300),
+        ];
         let notes_by_col: Vec<Vec<Note>> = vec![notes, vec![]];
         let mut raw_delta = Vec::new();
         let mut jbar = Vec::new();
-        compute_jbar(2, 0, 0.09, &notes_by_col, &corners, &mut raw_delta, &mut jbar);
-        assert!(jbar.iter().any(|&v| v > 0.0), "should have nonzero jbar with notes");
+        compute_jbar(
+            2,
+            0,
+            0.09,
+            &notes_by_col,
+            &corners,
+            &mut raw_delta,
+            &mut jbar,
+        );
+        assert!(
+            jbar.iter().any(|&v| v > 0.0),
+            "should have nonzero jbar with notes"
+        );
     }
 }

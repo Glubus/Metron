@@ -23,7 +23,10 @@ pub struct SunnyxxyDifficulty {
 
 impl Rating for SunnyxxyDifficulty {}
 
-pub fn calculate(chart: &RoxChart, context: &SunnyxxyDifficultyContext) -> CalculatorResult<SunnyxxyDifficulty> {
+pub fn calculate(
+    chart: &RoxChart,
+    context: &SunnyxxyDifficultyContext,
+) -> CalculatorResult<SunnyxxyDifficulty> {
     let clock_rate = f64::from(context.clock_rate.unwrap_or_default());
     let od = f64::from(context.overall_difficulty.unwrap_or(8.0));
     let map_data = build_map_data(chart, clock_rate, od);
@@ -37,23 +40,29 @@ fn compute_hit_leniency(overall_difficulty: f64) -> f64 {
 }
 
 fn chart_to_notes(chart: &RoxChart, clock_rate: f64) -> Vec<note::Note> {
-    let mut notes: Vec<note::Note> = chart.notes.iter().map(|n| {
-        let hit_ms = (n.time_us as f64 / 1_000.0 / clock_rate) as i64;
-        let duration_us = n.duration_us();
-        let tail_ms = if duration_us > 0 {
-            ((n.time_us as f64 + duration_us as f64) / 1_000.0 / clock_rate) as i64
-        } else {
-            -1
-        };
-        note::Note::new(n.column as usize, hit_ms, tail_ms)
-    }).collect();
+    let mut notes: Vec<note::Note> = chart
+        .notes
+        .iter()
+        .map(|n| {
+            let hit_ms = (n.time_us as f64 / 1_000.0 / clock_rate) as i64;
+            let duration_us = n.duration_us();
+            let tail_ms = if duration_us > 0 {
+                ((n.time_us as f64 + duration_us as f64) / 1_000.0 / clock_rate) as i64
+            } else {
+                -1
+            };
+            note::Note::new(n.column as usize, hit_ms, tail_ms)
+        })
+        .collect();
     notes.sort_unstable_by_key(|n| n.hit_time);
     notes
 }
 
 fn group_by_column(notes: &[note::Note], k: usize) -> Vec<Vec<note::Note>> {
     let mut by_col = vec![Vec::new(); k];
-    for n in notes { by_col[n.column].push(*n); }
+    for n in notes {
+        by_col[n.column].push(*n);
+    }
     by_col
 }
 
@@ -63,14 +72,18 @@ fn build_map_data(chart: &RoxChart, clock_rate: f64, overall_difficulty: f64) ->
     let long_notes: Vec<note::Note> = notes.iter().filter(|n| n.is_long_note()).copied().collect();
     let notes_by_column = group_by_column(&notes, k);
     let long_notes_by_column = group_by_column(&long_notes, k);
-    let times_by_column: Vec<Vec<i64>> = notes_by_column.iter()
+    let times_by_column: Vec<Vec<i64>> = notes_by_column
+        .iter()
         .map(|col| col.iter().map(|n| n.hit_time).collect())
         .collect();
     let mut tail_sequence = long_notes.clone();
     tail_sequence.sort_unstable_by_key(|n| n.tail_time);
-    let total_duration = notes.iter()
+    let total_duration = notes
+        .iter()
         .map(|n| n.hit_time.max(n.tail_time))
-        .max().unwrap_or(0) + 1;
+        .max()
+        .unwrap_or(0)
+        + 1;
     MapData {
         hit_leniency: compute_hit_leniency(overall_difficulty),
         column_count: k,

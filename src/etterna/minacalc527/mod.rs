@@ -16,7 +16,16 @@ fn with_calc<F, T>(f: F) -> Result<T, CalculatorError>
 where
     F: FnOnce(&Calc) -> Result<T, minacalc_rs::Error>,
 {
-    CALC.with(|c| f(&c.borrow()).map_err(|e| CalculatorError::Calculation(e.to_string())))
+    CALC.with(|c| {
+        let result = f(&c.borrow());
+        // The C++ threw (and was caught on its side): its state is unknown, so this thread starts again from a fresh calculator.
+        if matches!(result, Err(minacalc_rs::Error::CalcThrew))
+            && let Ok(fresh) = Calc::new()
+        {
+            *c.borrow_mut() = fresh;
+        }
+        result.map_err(|e| CalculatorError::Calculation(e.to_string()))
+    })
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -74,9 +83,9 @@ impl Default for MinaCalcPerformanceContext {
     }
 }
 
-pub struct MinaCalc515;
+pub struct MinaCalc527;
 
-impl Calculator for MinaCalc515 {
+impl Calculator for MinaCalc527 {
     type DifficultyContext = MinaCalcDifficultyContext;
     type PerformanceContext = MinaCalcPerformanceContext;
 
@@ -84,9 +93,9 @@ impl Calculator for MinaCalc515 {
     type Performance = EtternaDifficulty;
 
     const NAME: &'static str = "MinaCalc";
-    const VERSION: &'static str = "515";
+    const VERSION: &'static str = "527";
     const GAME: &'static str = "etterna";
-    const YEAR: u32 = 2021;
+    const YEAR: u32 = 2026;
 
     /// Raw chart difficulty (MSD — normal mode, as shown on etternaonline.com).
     fn calculate_difficulty(
@@ -138,7 +147,13 @@ impl Calculator for MinaCalc515 {
         let notes = chart_to_notes(chart)?;
 
         let scores = with_calc(|calc| {
-            calc.calc_at_rate(&notes, clock_rate as f32, context.score_goal, key_count, context.mode)
+            calc.calc_at_rate(
+                &notes,
+                clock_rate as f32,
+                context.score_goal,
+                key_count,
+                context.mode,
+            )
         })?;
 
         Ok(EtternaDifficulty {
@@ -168,15 +183,15 @@ mod tests {
     }
 
     #[test]
-    fn test_minacalc515_difficulty() {
+    fn test_minacalc527_difficulty() {
         let chart = test_chart();
-        let calc = MinaCalc515;
+        let calc = MinaCalc527;
         let context = MinaCalcDifficultyContext::default();
 
         let result = calc.calculate_difficulty(&chart, &context);
         assert!(result.is_ok());
         let diff = result.unwrap();
-        println!("MinaCalc515 overall: {}", diff.overall);
+        println!("MinaCalc527 overall: {}", diff.overall);
         assert!(diff.overall > 0.0);
     }
 
@@ -189,7 +204,7 @@ mod tests {
             .calc_at_rate(&notes, 1.5, 0.93, u32::from(chart.key_count), CalcMode::Msd)
             .expect("direct minacalc");
 
-        let wrapped = MinaCalc515
+        let wrapped = MinaCalc527
             .calculate_difficulty(
                 &chart,
                 &MinaCalcDifficultyContext {
@@ -200,7 +215,12 @@ mod tests {
             .expect("wrapped minacalc");
 
         let delta = (wrapped.overall - direct.overall).abs();
-        assert!(delta < 0.0001, "wrapped={} direct={}", wrapped.overall, direct.overall);
+        assert!(
+            delta < 0.0001,
+            "wrapped={} direct={}",
+            wrapped.overall,
+            direct.overall
+        );
     }
 
     #[test]
@@ -214,5 +234,24 @@ mod tests {
         assert_eq!(notes.len(), 2);
         assert_eq!(notes[0].notes, 0b0001);
         assert_eq!(notes[1].notes, 0b0100);
+    }
+
+    /// Etterna times rows from the first one, so moving the whole chart (the song's offset) never changes its rating.
+    #[test]
+    fn the_rating_does_not_depend_on_where_the_chart_starts() {
+        let chart = test_chart();
+        let rate = |offset_us: i64| {
+            let mut moved = chart.clone();
+            for note in &mut moved.notes {
+                note.time_us += offset_us;
+            }
+            MinaCalc527
+                .calculate_difficulty(&moved, &MinaCalcDifficultyContext::default())
+                .expect("rate the moved chart")
+                .overall
+        };
+        let at_start = rate(0);
+        assert_eq!(at_start, rate(2_731_000));
+        assert_eq!(at_start, rate(-935_000));
     }
 }

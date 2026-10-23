@@ -1,14 +1,14 @@
 
 [package]
 name = "metron-rs"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 description = "Difficulty and performance calculators for rhythm games (osu!mania, Etterna, Quaver)"
 license = "MIT"
 repository = "https://github.com/Glubus/Metron"
 
 [dependencies]
-minacalc-rs = { version = "515" }
+minacalc-rs = "527"
 rhythm-open-exchange = { path = "../Rhythm-Open-Exchange/crates/rox", package = "rox" }
 rox-formats = { path = "../Rhythm-Open-Exchange/crates/formats", features = ["std"] }
 rosu-pp = "3.1"
@@ -26,7 +26,7 @@ rstest = "0.26.1"
 serde_json = "1"
 
 [[example]]
-name = "minacalc515"
+name = "minacalc527"
 
 [[example]]
 name = "quaver2025"

@@ -5,7 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0]
+
+### Changed
+
+- **Etterna / MinaCalc 527**: `minacalc-rs` 527 (Etterna's current calculator). The module, the calculator and the example are renamed `minacalc527` / `MinaCalc527` / `minacalc527` (breaking); `VERSION` is `"527"`. 527 changes chordjack the most (a 4K chordjack reference chart: 40.56 in 515, 34.37 in 527).
+- **MinaCalc input timed like Etterna**: `chart_to_notes` times every row from the chart's first row, as Etterna's `NoteData::SerializeNoteData2` does. MinaCalc cuts time into intervals counted from zero, so a chart's offset used to change its rating (up to 0.21 overall and 1.2 on a skillset on the reference charts). This also keeps every time non-negative.
+
+### Fixed
+
+- **MinaCalc safety**: a note column beyond the chart's key count (or 32) is refused instead of overflowing the row mask. `minacalc-rs` 527 also catches MinaCalc's C++ exceptions and refuses unsafe inputs.
+- **Daniel**: key usage no longer indexes past its buffer for notes after the last calculation corner (it panicked on real charts).
 
 ### Added
 

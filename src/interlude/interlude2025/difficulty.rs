@@ -28,7 +28,11 @@ fn trill_contribution_for_hand(
         return (0.0, 0.0);
     }
     let trill_v = ms_to_stream_bpm(trill_delta) * jack_compensation(jack_delta, trill_delta);
-    if hand_k < column { (trill_v, 0.0) } else { (0.0, trill_v) }
+    if hand_k < column {
+        (trill_v, 0.0)
+    } else {
+        (0.0, trill_v)
+    }
 }
 
 fn calculate_trill_difficulty(
@@ -41,7 +45,8 @@ fn calculate_trill_difficulty(
     let mut sl = 0.0f64;
     let mut sr = 0.0f64;
     for hand_k in hand_range {
-        let (s, r) = trill_contribution_for_hand(hand_k, column, time, last_note_in_column, jack_delta);
+        let (s, r) =
+            trill_contribution_for_hand(hand_k, column, time, last_note_in_column, jack_delta);
         sl = sl.max(s);
         sr = sr.max(r);
     }
@@ -58,7 +63,11 @@ fn calculate_column_difficulty(
     key_count: usize,
 ) -> (f64, f64) {
     let jack_delta = time - last_note_time;
-    let j = if jack_delta > 0.0 { ms_to_jack_bpm(jack_delta) } else { 0.0 };
+    let j = if jack_delta > 0.0 {
+        ms_to_jack_bpm(jack_delta)
+    } else {
+        0.0
+    };
 
     let hand_range = if column < hand_split {
         0..=hand_split - 1
@@ -85,8 +94,13 @@ fn calculate_and_record_column_strain(
     key_count: usize,
 ) {
     let (_, updated_strain) = calculate_column_difficulty(
-        col, time, last_note_in_column[col], strain_values[col],
-        last_note_in_column, hand_split, key_count,
+        col,
+        time,
+        last_note_in_column[col],
+        strain_values[col],
+        last_note_in_column,
+        hand_split,
+        key_count,
     );
     strain_values[col] = updated_strain;
     last_note_in_column[col] = time;
@@ -132,7 +146,15 @@ pub fn calculate(chart: &RoxChart, context: &Interlude2025DifficultyContext) -> 
 
         while i < sorted_notes.len() && sorted_notes[i].0 == current_time_us {
             let col = sorted_notes[i].1;
-            calculate_and_record_column_strain(col, time, &mut last_note_in_column, &mut strain_values, &mut strain_data_points, hand_split, key_count);
+            calculate_and_record_column_strain(
+                col,
+                time,
+                &mut last_note_in_column,
+                &mut strain_values,
+                &mut strain_data_points,
+                hand_split,
+                key_count,
+            );
             i += 1;
         }
     }

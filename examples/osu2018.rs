@@ -18,7 +18,13 @@ fn main() {
             clock_rate: Some(ClockRate::from_percentage(rate).unwrap()),
             ..Default::default()
         };
-        let d = calc.calculate_difficulty(&chart, &context).expect("Calculation failed");
-        println!("{:<8} {:>8.2}", format!("{:.1}x", rate as f32 / 100.0), d.stars);
+        let d = calc
+            .calculate_difficulty(&chart, &context)
+            .expect("Calculation failed");
+        println!(
+            "{:<8} {:>8.2}",
+            format!("{:.1}x", rate as f32 / 100.0),
+            d.stars
+        );
     }
 }

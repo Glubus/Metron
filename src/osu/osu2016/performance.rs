@@ -61,11 +61,11 @@ mod tests {
     use super::*;
     use crate::{
         clock_rate::ClockRate,
-        osu::osu2018::{difficulty::calculate as osu2018_calculate, Osu2018DifficultyContext},
+        osu::osu2018::{Osu2018DifficultyContext, difficulty::calculate as osu2018_calculate},
     };
     use approx::assert_abs_diff_eq;
-    use rox_formats::auto_decode;
     use rhythm_open_exchange::RoxChart;
+    use rox_formats::auto_decode;
     use rstest::{fixture, rstest};
 
     #[fixture]

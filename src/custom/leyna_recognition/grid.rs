@@ -43,7 +43,9 @@ impl PatternGrid {
         max_time_slices: usize,
         ignore_holds: bool,
     ) -> (Vec<Self>, Vec<Vec<i64>>) {
-        let mut notes: Vec<_> = chart.notes.iter()
+        let mut notes: Vec<_> = chart
+            .notes
+            .iter()
             .filter(|n| !ignore_holds || n.duration_us() == 0)
             .collect();
         notes.sort_by_key(|n| n.time_us);
@@ -55,7 +57,10 @@ impl PatternGrid {
         let mut time_groups: std::collections::BTreeMap<i64, Vec<u8>> =
             std::collections::BTreeMap::new();
         for note in notes {
-            time_groups.entry(note.time_us).or_default().push(note.column);
+            time_groups
+                .entry(note.time_us)
+                .or_default()
+                .push(note.column);
         }
 
         let sorted_times: Vec<i64> = time_groups.keys().cloned().collect();

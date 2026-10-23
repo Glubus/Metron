@@ -4,25 +4,38 @@ pub struct PatternMerger;
 
 impl PatternMerger {
     pub fn are_compatible(p1: PatternType, p2: PatternType) -> bool {
-        if p1 as u8 == p2 as u8 { return true; }
+        if p1 as u8 == p2 as u8 {
+            return true;
+        }
 
         let stream_group = [
-            PatternType::Stream, PatternType::Light, PatternType::Mixed,
-            PatternType::SparseStream, PatternType::StreamSection,
-            PatternType::Jumpstream, PatternType::JumpSection,
-            PatternType::Handstream, PatternType::TechnicalHybrid,
+            PatternType::Stream,
+            PatternType::Light,
+            PatternType::Mixed,
+            PatternType::SparseStream,
+            PatternType::StreamSection,
+            PatternType::Jumpstream,
+            PatternType::JumpSection,
+            PatternType::Handstream,
+            PatternType::TechnicalHybrid,
         ];
         let chordjack_group = [
-            PatternType::Chordjack, PatternType::JackSection, PatternType::DenseChord,
+            PatternType::Chordjack,
+            PatternType::JackSection,
+            PatternType::DenseChord,
         ];
 
         let in_stream_1 = stream_group.contains(&p1);
         let in_stream_2 = stream_group.contains(&p2);
-        if in_stream_1 && in_stream_2 { return true; }
+        if in_stream_1 && in_stream_2 {
+            return true;
+        }
 
         let in_cj_1 = chordjack_group.contains(&p1);
         let in_cj_2 = chordjack_group.contains(&p2);
-        if in_cj_1 && in_cj_2 { return true; }
+        if in_cj_1 && in_cj_2 {
+            return true;
+        }
 
         false
     }

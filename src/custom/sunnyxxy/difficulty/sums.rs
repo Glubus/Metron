@@ -9,7 +9,9 @@ pub fn cumulative_sum(x: &[f64], f: &[f64]) -> Vec<f64> {
 
 #[inline]
 pub fn query_cumsum(q: f64, x: &[f64], f_cumsum: &[f64], f: &[f64]) -> f64 {
-    if q <= x[0] { return 0.0; }
+    if q <= x[0] {
+        return 0.0;
+    }
     if q >= *x.last().expect("non-empty") {
         return *f_cumsum.last().expect("non-empty");
     }

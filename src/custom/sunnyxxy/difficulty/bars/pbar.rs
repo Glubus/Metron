@@ -1,7 +1,7 @@
-use std::cell::RefCell;
 use super::super::calculations::ln::ln_sum;
-use super::super::smoothing::{SmoothMode, smooth_on_corners_into};
 use super::super::note::Note;
+use super::super::smoothing::{SmoothMode, smooth_on_corners_into};
+use std::cell::RefCell;
 
 thread_local! {
     static PBAR_STEP: RefCell<Vec<f64>> = RefCell::new(Vec::new());
@@ -39,23 +39,64 @@ fn apply_pair_step(p_step: &mut [f64], anchor: &[f64], left: usize, right: usize
     }
 }
 
-fn advance_window(corners: &[f64], left: &mut usize, right: &mut usize, start: f64, end: f64) -> bool {
-    while *left < corners.len() && corners[*left] < start { *left += 1; }
-    if *right < *left { *right = *left; }
-    while *right < corners.len() && corners[*right] < end { *right += 1; }
+fn advance_window(
+    corners: &[f64],
+    left: &mut usize,
+    right: &mut usize,
+    start: f64,
+    end: f64,
+) -> bool {
+    while *left < corners.len() && corners[*left] < start {
+        *left += 1;
+    }
+    if *right < *left {
+        *right = *left;
+    }
+    while *right < corners.len() && corners[*right] < end {
+        *right += 1;
+    }
     *left < *right
 }
 
-fn handle_simultaneous(p_step: &mut [f64], corners: &[f64], left: &mut usize, right: &mut usize, h_l: f64, x: f64) {
+fn handle_simultaneous(
+    p_step: &mut [f64],
+    corners: &[f64],
+    left: &mut usize,
+    right: &mut usize,
+    h_l: f64,
+    x: f64,
+) {
     let spike = simultaneous_spike(x);
-    while *left < corners.len() && corners[*left] < h_l { *left += 1; }
-    if *right < *left { *right = *left; }
-    while *right < corners.len() && corners[*right] <= h_l { *right += 1; }
-    for idx in *left..*right { p_step[idx] += spike; }
+    while *left < corners.len() && corners[*left] < h_l {
+        *left += 1;
+    }
+    if *right < *left {
+        *right = *left;
+    }
+    while *right < corners.len() && corners[*right] <= h_l {
+        *right += 1;
+    }
+    for idx in *left..*right {
+        p_step[idx] += spike;
+    }
 }
 
-fn process_note_pair(p_step: &mut [f64], anchor: &[f64], corners: &[f64], left: &mut usize, right: &mut usize, h_l: f64, h_r: f64, v: f64, x: f64, x_inv: f64, x_inv_quarter: f64) {
-    if !advance_window(corners, left, right, h_l, h_r) { return; }
+fn process_note_pair(
+    p_step: &mut [f64],
+    anchor: &[f64],
+    corners: &[f64],
+    left: &mut usize,
+    right: &mut usize,
+    h_l: f64,
+    h_r: f64,
+    v: f64,
+    x: f64,
+    x_inv: f64,
+    x_inv_quarter: f64,
+) {
+    if !advance_window(corners, left, right, h_l, h_r) {
+        return;
+    }
     let delta = 0.001 * (h_r - h_l);
     let inc = pbar_increment(delta, v, stream_booster(delta), x, x_inv, x_inv_quarter);
     apply_pair_step(p_step, anchor, *left, *right, inc);
@@ -84,10 +125,29 @@ pub fn compute_pbar(
         for i in 0..notes.len().saturating_sub(1) {
             let (h_l, h_r) = (notes[i].hit_time as f64, notes[i + 1].hit_time as f64);
             if (h_r - h_l).abs() < 1e-9 {
-                handle_simultaneous(&mut p_step, base_corners, &mut left_idx, &mut right_idx, h_l, x);
+                handle_simultaneous(
+                    &mut p_step,
+                    base_corners,
+                    &mut left_idx,
+                    &mut right_idx,
+                    h_l,
+                    x,
+                );
             } else {
                 let v = 1.0 + 6.0 * 0.001 * ln_sum(h_l, h_r, ln_rep);
-                process_note_pair(&mut p_step, anchor, base_corners, &mut left_idx, &mut right_idx, h_l, h_r, v, x, x_inv, x_inv_quarter);
+                process_note_pair(
+                    &mut p_step,
+                    anchor,
+                    base_corners,
+                    &mut left_idx,
+                    &mut right_idx,
+                    h_l,
+                    h_r,
+                    v,
+                    x,
+                    x_inv,
+                    x_inv_quarter,
+                );
             }
         }
         smooth_on_corners_into(base_corners, &p_step, 500.0, 0.001, SmoothMode::Sum, out);

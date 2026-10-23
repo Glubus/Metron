@@ -42,7 +42,9 @@ pub struct PatternTimeline {
 
 impl PatternTimeline {
     pub fn new() -> Self {
-        Self { entries: Vec::new() }
+        Self {
+            entries: Vec::new(),
+        }
     }
 
     pub fn build_from_cross_analysis(
@@ -57,18 +59,30 @@ impl PatternTimeline {
 
         let mut merged_entries: Vec<PatternTimelineEntry> = Vec::new();
 
-        let (mut current_start, mut current_end, mut current_pattern, first_bpm) = cross_analysis[0];
-        let mut current_bpms = if first_bpm > 0.0 { vec![first_bpm] } else { vec![] };
+        let (mut current_start, mut current_end, mut current_pattern, first_bpm) =
+            cross_analysis[0];
+        let mut current_bpms = if first_bpm > 0.0 {
+            vec![first_bpm]
+        } else {
+            vec![]
+        };
 
         for &(start, end, pattern, bpm) in cross_analysis.iter().skip(1) {
             if PatternMerger::are_compatible(current_pattern, pattern) {
                 current_end = end;
-                if bpm > 0.0 { current_bpms.push(bpm); }
+                if bpm > 0.0 {
+                    current_bpms.push(bpm);
+                }
                 current_pattern = PatternMerger::get_dominant_pattern(current_pattern, pattern);
             } else {
                 merged_entries.push(Self::create_entry(
-                    current_start, current_end, current_pattern,
-                    &current_bpms, grids, timestamps, key_count,
+                    current_start,
+                    current_end,
+                    current_pattern,
+                    &current_bpms,
+                    grids,
+                    timestamps,
+                    key_count,
                 ));
                 current_start = start;
                 current_end = end;
@@ -78,11 +92,18 @@ impl PatternTimeline {
         }
 
         merged_entries.push(Self::create_entry(
-            current_start, current_end, current_pattern,
-            &current_bpms, grids, timestamps, key_count,
+            current_start,
+            current_end,
+            current_pattern,
+            &current_bpms,
+            grids,
+            timestamps,
+            key_count,
         ));
 
-        Self { entries: merged_entries }
+        Self {
+            entries: merged_entries,
+        }
     }
 
     fn create_entry(
@@ -94,7 +115,11 @@ impl PatternTimeline {
         timestamps: &[Vec<i64>],
         key_count: usize,
     ) -> PatternTimelineEntry {
-        let avg_bpm = if bpms.is_empty() { 0.0 } else { bpms.iter().sum::<f64>() / bpms.len() as f64 };
+        let avg_bpm = if bpms.is_empty() {
+            0.0
+        } else {
+            bpms.iter().sum::<f64>() / bpms.len() as f64
+        };
         let min_bpm = bpms.iter().fold(f64::INFINITY, |a, &b| a.min(b));
         let max_bpm = bpms.iter().fold(f64::NEG_INFINITY, |a, &b| a.max(b));
 
@@ -108,7 +133,9 @@ impl PatternTimeline {
                 for (t_idx, &t) in times.iter().enumerate() {
                     if t >= start && t <= end {
                         for col in 0..key_count {
-                            if grid.get_note(t_idx, col) { note_count += 1; }
+                            if grid.get_note(t_idx, col) {
+                                note_count += 1;
+                            }
                         }
                     }
                 }
@@ -121,8 +148,16 @@ impl PatternTimeline {
             duration: end - start,
             pattern_type: pattern,
             avg_bpm,
-            min_bpm: if min_bpm == f64::INFINITY { 0.0 } else { min_bpm },
-            max_bpm: if max_bpm == f64::NEG_INFINITY { 0.0 } else { max_bpm },
+            min_bpm: if min_bpm == f64::INFINITY {
+                0.0
+            } else {
+                min_bpm
+            },
+            max_bpm: if max_bpm == f64::NEG_INFINITY {
+                0.0
+            } else {
+                max_bpm
+            },
             note_count,
             segment_indices,
         }

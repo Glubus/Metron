@@ -19,11 +19,15 @@ impl TimingAnalyzer {
         let time_groups = Self::group_notes_by_time(&notes);
         let sorted_times: Vec<i64> = time_groups.keys().cloned().collect();
         let info_list = Self::calculate_timing_info(&sorted_times, &time_groups);
-        Self { timing_info: info_list }
+        Self {
+            timing_info: info_list,
+        }
     }
 
     fn get_sorted_notes(chart: &RoxChart, ignore_holds: bool) -> Vec<&rhythm_open_exchange::Note> {
-        let mut notes: Vec<_> = chart.notes.iter()
+        let mut notes: Vec<_> = chart
+            .notes
+            .iter()
             .filter(|n| !ignore_holds || n.duration_us() == 0)
             .collect();
         notes.sort_by_key(|n| n.time_us);
@@ -41,8 +45,16 @@ impl TimingAnalyzer {
     fn calculate_timing_info(times: &[i64], groups: &BTreeMap<i64, usize>) -> Vec<TimingInfo> {
         let mut list = Vec::with_capacity(times.len());
         for (i, &time) in times.iter().enumerate() {
-            let delta = if i < times.len() - 1 { times[i + 1] - time } else { 0 };
-            let bpm = if delta > 0 { 15_000_000.0 / delta as f64 } else { 0.0 };
+            let delta = if i < times.len() - 1 {
+                times[i + 1] - time
+            } else {
+                0
+            };
+            let bpm = if delta > 0 {
+                15_000_000.0 / delta as f64
+            } else {
+                0.0
+            };
             list.push(TimingInfo {
                 timestamp: time,
                 delta_to_next: delta,

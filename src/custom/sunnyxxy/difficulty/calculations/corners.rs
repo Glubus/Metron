@@ -1,5 +1,5 @@
-use std::cell::RefCell;
 use super::super::note::Note;
+use std::cell::RefCell;
 
 thread_local! {
     static CORNERS_BASE_I64: RefCell<Vec<i64>> = RefCell::new(Vec::new());
@@ -7,7 +7,13 @@ thread_local! {
     static CORNERS_ALL_I64: RefCell<Vec<i64>> = RefCell::new(Vec::new());
 }
 
-pub fn get_corners_into(t: i64, notes: &[Note], all_corners: &mut Vec<f64>, base_corners: &mut Vec<f64>, a_corners: &mut Vec<f64>) {
+pub fn get_corners_into(
+    t: i64,
+    notes: &[Note],
+    all_corners: &mut Vec<f64>,
+    base_corners: &mut Vec<f64>,
+    a_corners: &mut Vec<f64>,
+) {
     CORNERS_BASE_I64.with(|bc_cell| {
         CORNERS_A_I64.with(|ac_cell| {
             CORNERS_ALL_I64.with(|all_cell| {
@@ -18,7 +24,9 @@ pub fn get_corners_into(t: i64, notes: &[Note], all_corners: &mut Vec<f64>, base
                 base_cands.clear();
                 for note in notes.iter() {
                     base_cands.push(note.hit_time);
-                    if note.tail_time >= 0 { base_cands.push(note.tail_time); }
+                    if note.tail_time >= 0 {
+                        base_cands.push(note.tail_time);
+                    }
                 }
                 let snapshot_len = base_cands.len();
                 for i in 0..snapshot_len {
@@ -36,7 +44,9 @@ pub fn get_corners_into(t: i64, notes: &[Note], all_corners: &mut Vec<f64>, base
                 a_cands.clear();
                 for note in notes.iter() {
                     a_cands.push(note.hit_time);
-                    if note.tail_time >= 0 { a_cands.push(note.tail_time); }
+                    if note.tail_time >= 0 {
+                        a_cands.push(note.tail_time);
+                    }
                 }
                 let snapshot_a_len = a_cands.len();
                 for i in 0..snapshot_a_len {

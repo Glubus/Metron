@@ -13,15 +13,27 @@ pub struct Note {
 
 impl Note {
     pub fn new(column: usize, hit_time: i64, tail_time: i64) -> Self {
-        Self { column, hit_time, tail_time }
+        Self {
+            column,
+            hit_time,
+            tail_time,
+        }
     }
 
     pub fn simple(column: usize, hit_time: i64) -> Self {
-        Self { column, hit_time, tail_time: -1 }
+        Self {
+            column,
+            hit_time,
+            tail_time: -1,
+        }
     }
 
     pub fn long_note(column: usize, hit_time: i64, tail_time: i64) -> Self {
-        Self { column, hit_time, tail_time }
+        Self {
+            column,
+            hit_time,
+            tail_time,
+        }
     }
 
     pub fn is_long_note(&self) -> bool {
@@ -40,7 +52,11 @@ impl Note {
 impl fmt::Display for Note {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.is_long_note() {
-            write!(f, "Note(col={}, hit={}ms, tail={}ms)", self.column, self.hit_time, self.tail_time)
+            write!(
+                f,
+                "Note(col={}, hit={}ms, tail={}ms)",
+                self.column, self.hit_time, self.tail_time
+            )
         } else {
             write!(f, "Note(col={}, hit={}ms)", self.column, self.hit_time)
         }

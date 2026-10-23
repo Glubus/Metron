@@ -1,5 +1,5 @@
-use std::cell::RefCell;
 use super::super::note::Note;
+use std::cell::RefCell;
 
 thread_local! {
     // Flat buffers: index as [col * n + i]
@@ -19,7 +19,9 @@ pub fn with_key_usage<R>(
     KEY_USAGE_BUF.with(|cell| {
         let mut buf = cell.borrow_mut();
         let total = k * n;
-        if buf.len() < total { buf.resize(total, false); }
+        if buf.len() < total {
+            buf.resize(total, false);
+        }
         // zero only the needed portion
         buf[..total].fill(false);
         for note in notes.iter() {
@@ -52,7 +54,9 @@ pub fn with_key_usage_400<R>(
     KEY_USAGE_400_BUF.with(|cell| {
         let mut buf = cell.borrow_mut();
         let total = k * n;
-        if buf.len() < total { buf.resize(total, 0.0); }
+        if buf.len() < total {
+            buf.resize(total, 0.0);
+        }
         buf[..total].fill(0.0);
         for note in notes.iter() {
             let start_time = note.hit_time.max(0);
@@ -68,7 +72,9 @@ pub fn with_key_usage_400<R>(
             let col_base = note.column * n;
             let usage = &mut buf[col_base..col_base + n];
             let base_val = 3.75 + ((end_time - start_time).min(1500) as f64) / 150.0;
-            for i in left_idx..right_idx { usage[i] += base_val; }
+            for i in left_idx..right_idx {
+                usage[i] += base_val;
+            }
             for i in left400_idx..left_idx {
                 let diff = base_corners[i] - start_time as f64;
                 usage[i] += 3.75 - 3.75 / (400.0 * 400.0) * diff * diff;

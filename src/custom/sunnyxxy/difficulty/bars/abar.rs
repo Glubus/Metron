@@ -1,6 +1,6 @@
-use std::cell::RefCell;
-use super::super::smoothing::{SmoothMode, smooth_on_corners_into};
 use super::super::note::Note;
+use super::super::smoothing::{SmoothMode, smooth_on_corners_into};
+use std::cell::RefCell;
 
 thread_local! {
     static ABAR_DKS: RefCell<Vec<Vec<f64>>> = RefCell::new(Vec::new());
@@ -17,7 +17,13 @@ fn anchor_penalty(d_val: f64, dk0: f64, dk1: f64) -> f64 {
     }
 }
 
-fn build_dks_into(n: usize, k: usize, active_mask: &[u16], delta_ks: &[Vec<f64>], dks: &mut Vec<Vec<f64>>) {
+fn build_dks_into(
+    n: usize,
+    k: usize,
+    active_mask: &[u16],
+    delta_ks: &[Vec<f64>],
+    dks: &mut Vec<Vec<f64>>,
+) {
     let num_pairs = k.saturating_sub(1);
     dks.resize_with(num_pairs, Vec::new);
     for col_dks in dks.iter_mut() {
@@ -43,11 +49,19 @@ fn build_dks_into(n: usize, k: usize, active_mask: &[u16], delta_ks: &[Vec<f64>]
     }
 }
 
-fn compute_a_step(a_corners: &[f64], base_corners: &[f64], active_mask: &[u16], dks: &[Vec<f64>], delta_ks: &[Vec<f64>]) -> Vec<f64> {
+fn compute_a_step(
+    a_corners: &[f64],
+    base_corners: &[f64],
+    active_mask: &[u16],
+    dks: &[Vec<f64>],
+    delta_ks: &[Vec<f64>],
+) -> Vec<f64> {
     let mut a_step = vec![1.0; a_corners.len()];
     for (i, &s) in a_corners.iter().enumerate() {
         let mut idx = base_corners.partition_point(|&v| v < s);
-        if idx >= base_corners.len() { idx = base_corners.len() - 1; }
+        if idx >= base_corners.len() {
+            idx = base_corners.len() - 1;
+        }
         let mut mask = active_mask[idx];
         let mut prev_col: Option<usize> = None;
         while mask != 0 {

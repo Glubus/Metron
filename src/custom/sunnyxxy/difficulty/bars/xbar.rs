@@ -1,6 +1,6 @@
-use std::cell::RefCell;
-use super::super::smoothing::{smooth_on_corners_into, SmoothMode};
 use super::super::note::Note;
+use super::super::smoothing::{SmoothMode, smooth_on_corners_into};
+use std::cell::RefCell;
 
 thread_local! {
     static XBAR_X_KS: RefCell<Vec<f64>> = RefCell::new(Vec::new());
@@ -24,8 +24,12 @@ fn cross_coefficients(k: usize, out: &mut [f64; MAX_COLS]) -> usize {
         6 => out[..7].copy_from_slice(&[0.225, 0.35, 0.25, 0.05, 0.25, 0.35, 0.225]),
         7 => out[..8].copy_from_slice(&[0.225, 0.35, 0.25, 0.225, 0.225, 0.25, 0.35, 0.225]),
         8 => out[..9].copy_from_slice(&[0.275, 0.45, 0.35, 0.25, 0.05, 0.25, 0.35, 0.45, 0.275]),
-        9 => out[..10].copy_from_slice(&[0.275, 0.45, 0.35, 0.25, 0.275, 0.275, 0.25, 0.35, 0.45, 0.275]),
-        10 => out[..11].copy_from_slice(&[0.325, 0.55, 0.45, 0.35, 0.25, 0.05, 0.25, 0.35, 0.45, 0.55, 0.325]),
+        9 => out[..10].copy_from_slice(&[
+            0.275, 0.45, 0.35, 0.25, 0.275, 0.275, 0.25, 0.35, 0.45, 0.275,
+        ]),
+        10 => out[..11].copy_from_slice(&[
+            0.325, 0.55, 0.45, 0.35, 0.25, 0.05, 0.25, 0.35, 0.45, 0.55, 0.325,
+        ]),
         _ => panic!("unsupported key count {k}"),
     }
     len
@@ -36,14 +40,27 @@ fn collect_pair_times_into(a: &[Note], b: &[Note], times: &mut Vec<f64>) {
     let (mut ia, mut ib) = (0, 0);
     while ia < a.len() || ib < b.len() {
         if ia < a.len() && (ib >= b.len() || a[ia].hit_time <= b[ib].hit_time) {
-            times.push(a[ia].hit_time as f64); ia += 1;
+            times.push(a[ia].hit_time as f64);
+            ia += 1;
         } else {
-            times.push(b[ib].hit_time as f64); ib += 1;
+            times.push(b[ib].hit_time as f64);
+            ib += 1;
         }
     }
 }
 
-fn fill_interval(x_col: &mut [f64], fc_col: &mut [f64], idx_s: usize, idx_e: usize, prev: f64, next: f64, x: f64, cross_comp: f64, col: usize, active_mask: &[u16]) {
+fn fill_interval(
+    x_col: &mut [f64],
+    fc_col: &mut [f64],
+    idx_s: usize,
+    idx_e: usize,
+    prev: f64,
+    next: f64,
+    x: f64,
+    cross_comp: f64,
+    col: usize,
+    active_mask: &[u16],
+) {
     let delta = 0.001 * (next - prev);
     let inv = 1.0 / x.max(delta);
     let mut val = 0.16 * inv * inv;
@@ -53,33 +70,72 @@ fn fill_interval(x_col: &mut [f64], fc_col: &mut [f64], idx_s: usize, idx_e: usi
     let mask_e = active_mask.get(idx_e).copied().unwrap_or(0);
     let inactive_prev = (mask_s & pc_bit == 0) && (mask_e & pc_bit == 0);
     let inactive_cur = (mask_s & col_bit == 0) && (mask_e & col_bit == 0);
-    if inactive_prev || inactive_cur { val *= cross_comp; }
+    if inactive_prev || inactive_cur {
+        val *= cross_comp;
+    }
     let d = delta.max(0.06).max(0.75 * x);
     let fc_val = (0.4 / (d * d) - 80.0).max(0.0);
     x_col[idx_s..idx_e].fill(val);
     fc_col[idx_s..idx_e].fill(fc_val);
 }
 
-fn fill_col_contributions_into(times: &[f64], base_corners: &[f64], x: f64, cross_comp: f64, col: usize, active_mask: &[u16], x_col: &mut [f64], fc_col: &mut [f64]) {
+fn fill_col_contributions_into(
+    times: &[f64],
+    base_corners: &[f64],
+    x: f64,
+    cross_comp: f64,
+    col: usize,
+    active_mask: &[u16],
+    x_col: &mut [f64],
+    fc_col: &mut [f64],
+) {
     let n = base_corners.len();
     x_col[..n].fill(0.0);
     fc_col[..n].fill(0.0);
-    if times.len() < 2 { return; }
+    if times.len() < 2 {
+        return;
+    }
     let mut idx_s = 0usize;
     let mut idx_e = 0usize;
     for w in times.windows(2) {
         let (prev_time, next_time) = (w[0], w[1]);
-        while idx_s < n && base_corners[idx_s] < prev_time { idx_s += 1; }
-        if idx_e < idx_s { idx_e = idx_s; }
-        while idx_e < n && base_corners[idx_e] < next_time { idx_e += 1; }
-        if idx_s >= idx_e { continue; }
-        fill_interval(x_col, fc_col, idx_s, idx_e, prev_time, next_time, x, cross_comp, col, active_mask);
+        while idx_s < n && base_corners[idx_s] < prev_time {
+            idx_s += 1;
+        }
+        if idx_e < idx_s {
+            idx_e = idx_s;
+        }
+        while idx_e < n && base_corners[idx_e] < next_time {
+            idx_e += 1;
+        }
+        if idx_s >= idx_e {
+            continue;
+        }
+        fill_interval(
+            x_col,
+            fc_col,
+            idx_s,
+            idx_e,
+            prev_time,
+            next_time,
+            x,
+            cross_comp,
+            col,
+            active_mask,
+        );
     }
 }
 
 // x_ks and fast_cross are flat col-major: index = col * n + i
 // Iterate col-outer, i-inner for sequential cache-friendly access within each col's slice
-fn merge_xbar_contributions_into(x_ks: &[f64], fast_cross: &[f64], cross_coeff: &[f64], n: usize, k: usize, out: &mut [f64]) {
+fn merge_xbar_contributions_into(
+    x_ks: &[f64],
+    fast_cross: &[f64],
+    cross_coeff: &[f64],
+    n: usize,
+    k: usize,
+    out: &mut [f64],
+) {
     out[..n].fill(0.0);
     for col in 0..=k {
         let coeff = cross_coeff[col];
@@ -99,10 +155,18 @@ fn merge_xbar_contributions_into(x_ks: &[f64], fast_cross: &[f64], cross_coeff: 
     }
 }
 
-fn column_notes<'a>(col: usize, k: usize, notes_by_column: &'a [Vec<Note>]) -> (&'a [Note], &'a [Note]) {
-    if col == 0 { (&notes_by_column[0], &[]) }
-    else if col == k { (&notes_by_column[k - 1], &[]) }
-    else { (&notes_by_column[col - 1], &notes_by_column[col]) }
+fn column_notes<'a>(
+    col: usize,
+    k: usize,
+    notes_by_column: &'a [Vec<Note>],
+) -> (&'a [Note], &'a [Note]) {
+    if col == 0 {
+        (&notes_by_column[0], &[])
+    } else if col == k {
+        (&notes_by_column[k - 1], &[])
+    } else {
+        (&notes_by_column[col - 1], &notes_by_column[col])
+    }
 }
 
 pub fn compute_xbar(
@@ -118,7 +182,9 @@ pub fn compute_xbar(
     let len = cross_coefficients(k, &mut cross_coeff_arr);
     let cross_coeff = &cross_coeff_arr[..len];
     let mut cross_comp_arr = [0.0f64; MAX_COLS];
-    for i in 0..len { cross_comp_arr[i] = 1.0 - cross_coeff[i]; }
+    for i in 0..len {
+        cross_comp_arr[i] = 1.0 - cross_coeff[i];
+    }
     let cross_comp = &cross_comp_arr[..len];
     let n = base_corners.len();
     let total_cols = k + 1;
@@ -137,12 +203,38 @@ pub fn compute_xbar(
                     for col in 0..=k {
                         let (a, b) = column_notes(col, k, notes_by_column);
                         collect_pair_times_into(a, b, &mut pair_times);
-                        let (xk_slice, fc_slice) = (&mut x_ks[col*n..(col+1)*n], &mut fast_cross[col*n..(col+1)*n]);
-                        fill_col_contributions_into(&pair_times, base_corners, x, cross_comp[col], col, active_mask, xk_slice, fc_slice);
+                        let (xk_slice, fc_slice) = (
+                            &mut x_ks[col * n..(col + 1) * n],
+                            &mut fast_cross[col * n..(col + 1) * n],
+                        );
+                        fill_col_contributions_into(
+                            &pair_times,
+                            base_corners,
+                            x,
+                            cross_comp[col],
+                            col,
+                            active_mask,
+                            xk_slice,
+                            fc_slice,
+                        );
                     }
-                    merge_xbar_contributions_into(&x_ks, &fast_cross, cross_coeff, n, k, &mut x_base);
+                    merge_xbar_contributions_into(
+                        &x_ks,
+                        &fast_cross,
+                        cross_coeff,
+                        n,
+                        k,
+                        &mut x_base,
+                    );
                     out.resize(n, 0.0);
-                    smooth_on_corners_into(base_corners, &x_base, 500.0, 0.001, SmoothMode::Sum, out);
+                    smooth_on_corners_into(
+                        base_corners,
+                        &x_base,
+                        500.0,
+                        0.001,
+                        SmoothMode::Sum,
+                        out,
+                    );
                 })
             })
         })

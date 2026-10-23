@@ -9,7 +9,10 @@ fn add_column_to_current_row(notes: &mut Vec<Note>, column_bit: u32) {
 }
 
 fn start_new_row(notes: &mut Vec<Note>, time_us: i64, column_bit: u32) {
-    notes.push(Note { notes: column_bit, row_time: time_us as f32 / 1_000_000.0 });
+    notes.push(Note {
+        notes: column_bit,
+        row_time: time_us as f32 / 1_000_000.0,
+    });
 }
 
 fn merge_sorted_pairs_into_notes(pairs: Vec<(i64, u32)>) -> Vec<Note> {
@@ -26,10 +29,16 @@ fn merge_sorted_pairs_into_notes(pairs: Vec<(i64, u32)>) -> Vec<Note> {
     notes
 }
 
-/// Converts a ROX chart to MinaCalc notes at the chart's native timestamps.
+/// Converts a ROX chart to MinaCalc notes, timed from the chart's first row.
 ///
 /// Notes at the same timestamp are merged via bitmask OR, matching Etterna's
 /// internal row representation.
+///
+/// Times start at the first row, as Etterna feeds them
+/// (`NoteData::SerializeNoteData2`: `etaner[idx] - etaner[0]`, where the first
+/// row may hold only mines). MinaCalc cuts time into intervals counted from
+/// zero, so keeping the chart's own offset would change its ratings. It also
+/// keeps every time non-negative: MinaCalc throws on a note before zero.
 ///
 /// MinaCalc receives the desired music rate separately in `calc_at_rate` and
 /// applies that rate internally. Pre-scaling timestamps here would apply the
@@ -43,6 +52,16 @@ pub fn chart_to_notes(chart: &RoxChart) -> Result<Vec<Note>, CalculatorError> {
 
     // Collect playable (time, column_bit) pairs, then sort by time. Mines are
     // not playable notes and must not contribute to MinaCalc rows.
+    // Safety first: a column MinaCalc's 32-bit row cannot hold is refused (the shift would overflow).
+    if chart
+        .notes
+        .iter()
+        .any(|n| n.column >= 32 || n.column >= chart.key_count)
+    {
+        return Err(CalculatorError::Calculation(
+            "A note's column is beyond the chart's key count".into(),
+        ));
+    }
     let mut pairs: Vec<(i64, u32)> = chart
         .notes
         .iter()
@@ -50,9 +69,15 @@ pub fn chart_to_notes(chart: &RoxChart) -> Result<Vec<Note>, CalculatorError> {
         .map(|n| (n.time_us, 1u32 << n.column))
         .collect();
     if pairs.is_empty() {
-        return Err(CalculatorError::Calculation("Chart has no playable notes".into()));
+        return Err(CalculatorError::Calculation(
+            "Chart has no playable notes".into(),
+        ));
     }
     pairs.sort_unstable_by_key(|&(t, _)| t);
+    let first = chart.notes.iter().map(|n| n.time_us).min().unwrap_or(0);
+    for pair in &mut pairs {
+        pair.0 -= first;
+    }
 
     Ok(merge_sorted_pairs_into_notes(pairs))
 }

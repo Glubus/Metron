@@ -471,7 +471,7 @@ dependencies = [
 
 [[package]]
 name = "metron-rs"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "approx",
  "criterion",
@@ -500,18 +500,18 @@ dependencies = [
 
 [[package]]
 name = "minacalc-rs"
-version = "515.1.1"
+version = "527.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "320225a79164d012d64ff6c9938efffe8a1c00097156f1d1b4b0b68f47ece801"
+checksum = "095e8caa3a30e649c8985ef176ea9e92cdb710b509e995806edd38a1f96b33b3"
 dependencies = [
  "minacalc-sys",
 ]
 
 [[package]]
 name = "minacalc-sys"
-version = "515.1.1"
+version = "527.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "112686c41bfa7cb3423b789e949fed3d47db3477afe6683571a6ddaabbc29aca"
+checksum = "ad51d6fbfa5ee2adb6188086dfbecefe18c0efe2c842c02f387d8532990b8181"
 dependencies = [
  "bindgen",
  "cc",

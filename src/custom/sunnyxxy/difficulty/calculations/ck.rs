@@ -19,8 +19,12 @@ pub fn compute_c_and_ks(
     for (i, &s) in base_corners.iter().enumerate() {
         let low = s - 500.0;
         let high = s + 500.0;
-        while rp < nt && (notes[rp].hit_time as f64) < high { rp += 1; }
-        while lp < nt && (notes[lp].hit_time as f64) < low { lp += 1; }
+        while rp < nt && (notes[rp].hit_time as f64) < high {
+            rp += 1;
+        }
+        while lp < nt && (notes[lp].hit_time as f64) < low {
+            lp += 1;
+        }
         c_out[i] = (rp - lp) as f64;
     }
     ks_out.resize(n, 0.0);

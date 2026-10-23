@@ -43,7 +43,7 @@ pub fn calculate_note_total(j: f64, sl: f64, sr: f64) -> f64 {
     // STREAM_SCALE = 6.0
     let sl_term = (STREAM_SCALE * sl.sqrt()).powi(3);
     let sr_term = (STREAM_SCALE * sr.sqrt()).powi(3);
-    let j_term  = j.powi(3);
+    let j_term = j.powi(3);
     (sl_term + sr_term + j_term).cbrt()
 }
 
@@ -98,9 +98,9 @@ pub fn weighted_overall_difficulty(mut data: Vec<f64>) -> f64 {
 
 #[cfg(test)]
 mod tests {
+    use super::super::constants::JACK_CURVE_CUTOFF;
     use super::*;
     use approx::assert_relative_eq;
-    use super::super::constants::JACK_CURVE_CUTOFF;
 
     #[test]
     fn test_weighting_curve() {

@@ -6,7 +6,7 @@ A Rust library implementing difficulty and performance calculators for rhythm ga
 
 | Game | Calculator | Version | Notes |
 |---|---|---|---|
-| Etterna | MinaCalc | 515 | MSD (raw) + SSR (score-relative) |
+| Etterna | MinaCalc | 527 | MSD (raw) + SSR (score-relative) |
 | Quaver | Quaver | 2025 | Full strain model |
 | osu!mania | osu!mania | 2018 | HitWindow + strain |
 | osu!mania | osu!mania | 2016 | 2018 difficulty + 2016 PP formula |
@@ -23,15 +23,15 @@ fn calculate_difficulty(&self, chart: &RoxChart, context: &Self::DifficultyConte
 fn calculate_performance(&self, chart: &RoxChart, difficulty: &Self::Difficulty, context: &Self::PerformanceContext) -> CalculatorResult<Self::Performance>;
 ```
 
-### Example — Etterna MinaCalc 515
+### Example — Etterna MinaCalc 527
 
 ```rust
 use metron::calculator::Calculator;
-use metron::etterna::minacalc515::{MinaCalc515, MinaCalcDifficultyContext};
+use metron::etterna::minacalc527::{MinaCalc527, MinaCalcDifficultyContext};
 use rhythm_open_exchange::auto_decode;
 
 let chart = auto_decode("my_chart.osu").unwrap();
-let calc = MinaCalc515;
+let calc = MinaCalc527;
 let context = MinaCalcDifficultyContext::default(); // 1.0x, MSD mode
 
 let difficulty = calc.calculate_difficulty(&chart, &context).unwrap();
@@ -89,7 +89,7 @@ Output shape:
 Run any example against `assets/test.osu` across 10 rates (0.7x → 1.6x):
 
 ```sh
-cargo run --example minacalc515
+cargo run --example minacalc527
 cargo run --example quaver2025
 cargo run --example osu2018
 cargo run --example osu2016

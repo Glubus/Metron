@@ -60,12 +60,16 @@ pub fn with_key_usage_400<R>(
             let mid_index = search_left(base_corners, start);
             let usage = &mut buf[note.column * corner_count..(note.column + 1) * corner_count];
 
-            usage[mid_index] += 3.75;
-            for index in left_index..mid_index {
+            // A note after the last corner has `mid_index == corner_count`: there is
+            // no corner to credit, and the neighbours on its left still get theirs.
+            if mid_index < usage.len() {
+                usage[mid_index] += 3.75;
+            }
+            for index in left_index..mid_index.min(usage.len()) {
                 let delta = base_corners[index] - start;
                 usage[index] += 3.75 - 3.75 / 400.0_f64.powi(2) * delta * delta;
             }
-            for index in (mid_index + 1)..right_index {
+            for index in (mid_index + 1)..right_index.min(usage.len()) {
                 let delta = base_corners[index] - start;
                 usage[index] += 3.75 - 3.75 / 400.0_f64.powi(2) * delta * delta;
             }
@@ -87,4 +91,29 @@ pub fn compute_active_masks(key_count: usize, key_usage: &[bool], corner_count: 
         }
     }
     active_masks
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_note_after_the_last_corner_does_not_index_past_the_buffer() {
+        let corners = [0.0, 100.0, 200.0];
+        let notes = [
+            Note {
+                column: 1,
+                hit_time: 5_000,
+            },
+            Note {
+                column: 0,
+                hit_time: 100,
+            },
+        ];
+        let usage = with_key_usage_400(2, &notes, &corners, |usage| usage.to_vec());
+        assert_eq!(usage.len(), 6);
+        // The late note adds nothing; the one on a corner credits that corner.
+        assert_eq!(&usage[3..], &[0.0, 0.0, 0.0]);
+        assert!(usage[1] >= 3.75);
+    }
 }

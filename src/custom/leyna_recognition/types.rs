@@ -64,27 +64,41 @@ impl PatternClassification {
     pub fn has_jump(&self) -> bool {
         matches!(
             self,
-            Self::JumpTop | Self::JumpBottom | Self::TripleNoTL | Self::TripleNoTR
-                | Self::TripleNoBL | Self::TripleNoBR | Self::Chord
+            Self::JumpTop
+                | Self::JumpBottom
+                | Self::TripleNoTL
+                | Self::TripleNoTR
+                | Self::TripleNoBL
+                | Self::TripleNoBR
+                | Self::Chord
         )
     }
 
     pub fn has_jack(&self) -> bool {
         matches!(
             self,
-            Self::JackLeft | Self::JackRight | Self::TripleNoTL | Self::TripleNoTR
-                | Self::TripleNoBL | Self::TripleNoBR | Self::Chord
+            Self::JackLeft
+                | Self::JackRight
+                | Self::TripleNoTL
+                | Self::TripleNoTR
+                | Self::TripleNoBL
+                | Self::TripleNoBR
+                | Self::Chord
         )
     }
 
     pub fn get_category(&self) -> PatternCategory {
         match self {
             Self::Empty => PatternCategory::Empty,
-            Self::SingleTL | Self::SingleTR | Self::SingleBL | Self::SingleBR => PatternCategory::Single,
+            Self::SingleTL | Self::SingleTR | Self::SingleBL | Self::SingleBR => {
+                PatternCategory::Single
+            }
             Self::JumpTop | Self::JumpBottom => PatternCategory::Jump,
             Self::JackLeft | Self::JackRight => PatternCategory::Jack,
             Self::TrillDown | Self::TrillUp => PatternCategory::Trill,
-            Self::TripleNoTL | Self::TripleNoTR | Self::TripleNoBL | Self::TripleNoBR => PatternCategory::Triple,
+            Self::TripleNoTL | Self::TripleNoTR | Self::TripleNoBL | Self::TripleNoBR => {
+                PatternCategory::Triple
+            }
             Self::Chord => PatternCategory::Chord,
         }
     }
@@ -92,22 +106,64 @@ impl PatternClassification {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum PatternCategory {
-    Empty, Single, Jump, Jack, Trill, Triple, Chord,
+    Empty,
+    Single,
+    Jump,
+    Jack,
+    Trill,
+    Triple,
+    Chord,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub enum PatternType {
-    EmptyRegion, VerySparse,
-    SingleNotes, Scattered, SparseSingles,
-    Stream, ReverseStream, StreamSection, SparseStream, StreamWithSingles, StreamDense,
-    JumpSection, SparseJumps, JumpWithSingles, LightJumps, DenseJumps, AlternatingJumps,
-    JackSection, ExtendedJackLeft, ExtendedJackRight, SplitJack, SparseJacks, JackWithSingles, LightJacks,
-    ChordSection, SparseChords, ChordWithSingles, LightChords, DenseChord, TripleSection, TripleWithSingles,
-    TechnicalHybrid, TechnicalWithSingles, SparseTechnical,
-    Jumpstream, JumpstreamDense, JumpstreamWithSingles,
-    Handstream, HandstreamDense,
-    Chordjack, ChordjackDense,
-    Mixed, ComplexMixed, ComplexDense, Dense, Moderate, Light,
+    EmptyRegion,
+    VerySparse,
+    SingleNotes,
+    Scattered,
+    SparseSingles,
+    Stream,
+    ReverseStream,
+    StreamSection,
+    SparseStream,
+    StreamWithSingles,
+    StreamDense,
+    JumpSection,
+    SparseJumps,
+    JumpWithSingles,
+    LightJumps,
+    DenseJumps,
+    AlternatingJumps,
+    JackSection,
+    ExtendedJackLeft,
+    ExtendedJackRight,
+    SplitJack,
+    SparseJacks,
+    JackWithSingles,
+    LightJacks,
+    ChordSection,
+    SparseChords,
+    ChordWithSingles,
+    LightChords,
+    DenseChord,
+    TripleSection,
+    TripleWithSingles,
+    TechnicalHybrid,
+    TechnicalWithSingles,
+    SparseTechnical,
+    Jumpstream,
+    JumpstreamDense,
+    JumpstreamWithSingles,
+    Handstream,
+    HandstreamDense,
+    Chordjack,
+    ChordjackDense,
+    Mixed,
+    ComplexMixed,
+    ComplexDense,
+    Dense,
+    Moderate,
+    Light,
 }
 
 impl PatternType {

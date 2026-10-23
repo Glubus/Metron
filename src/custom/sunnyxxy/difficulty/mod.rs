@@ -9,7 +9,7 @@ pub mod sums;
 pub mod utils;
 
 use crate::calculator::{CalculatorResult, Rating};
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 
 pub use map_data::MapData;
 pub use note::Note as InternalNote;

@@ -9,8 +9,7 @@ repository = "https://github.com/Glubus/Metron"
 
 [dependencies]
 minacalc-rs = "527"
-rhythm-open-exchange = { path = "../Rhythm-Open-Exchange/crates/rox", package = "rox" }
-rox-formats = { path = "../Rhythm-Open-Exchange/crates/formats", features = ["std"] }
+rox = { package = "rhythm-open-exchange", version = "0.7", default-features = false, features = ["formats"] }
 rosu-pp = "3.1"
 serde = { version = "1", features = ["derive"] }
 thiserror = "2.0.18"

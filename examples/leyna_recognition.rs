@@ -1,5 +1,5 @@
 use metron_rs::custom::leyna_recognition;
-use rox_formats::auto_decode;
+use rox::formats::auto_decode;
 
 fn main() {
     let chart = auto_decode("assets/test.osu").expect("Failed to decode test.osu");

@@ -13,7 +13,7 @@ pub use tree::{QuadTreeBuilder, QuadTreeNode};
 pub use types::{PatternCategory, PatternClassification, PatternType};
 pub use window::CrossSegmentAnalyzer;
 
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 use serde::ser::SerializeStruct;
 use serde::{Deserialize, Serialize, Serializer};
 

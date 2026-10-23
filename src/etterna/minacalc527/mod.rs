@@ -2,7 +2,7 @@ use crate::calculator::{Calculator, CalculatorError, CalculatorResult, Rating};
 use crate::clock_rate::ClockRate;
 use crate::etterna::convert::chart_to_notes;
 use minacalc_rs::{Calc, CalcMode};
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 use std::cell::RefCell;
 
 // One Calc per thread — Calc is not Send (underlying C++ is not thread-safe).
@@ -174,8 +174,8 @@ mod tests {
     use super::*;
     use crate::etterna::convert::chart_to_notes;
     use minacalc_rs::Calc;
-    use rhythm_open_exchange::Note;
-    use rox_formats::auto_decode;
+    use rox::Note;
+    use rox::formats::auto_decode;
 
     fn test_chart() -> RoxChart {
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("assets/test.osu");

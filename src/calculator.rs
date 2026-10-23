@@ -1,4 +1,4 @@
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 use thiserror::Error;
 
 /// Domain-specific errors for calculator operations.

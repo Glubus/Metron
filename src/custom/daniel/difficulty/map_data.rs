@@ -1,4 +1,4 @@
-use rhythm_open_exchange::{NoteType, RoxChart};
+use rox::{NoteType, RoxChart};
 
 use super::note::Note;
 

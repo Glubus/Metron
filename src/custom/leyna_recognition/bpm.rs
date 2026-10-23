@@ -1,4 +1,4 @@
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone)]
@@ -24,7 +24,7 @@ impl TimingAnalyzer {
         }
     }
 
-    fn get_sorted_notes(chart: &RoxChart, ignore_holds: bool) -> Vec<&rhythm_open_exchange::Note> {
+    fn get_sorted_notes(chart: &RoxChart, ignore_holds: bool) -> Vec<&rox::Note> {
         let mut notes: Vec<_> = chart
             .notes
             .iter()
@@ -34,7 +34,7 @@ impl TimingAnalyzer {
         notes
     }
 
-    fn group_notes_by_time(notes: &[&rhythm_open_exchange::Note]) -> BTreeMap<i64, usize> {
+    fn group_notes_by_time(notes: &[&rox::Note]) -> BTreeMap<i64, usize> {
         let mut time_groups = BTreeMap::new();
         for note in notes {
             *time_groups.entry(note.time_us).or_default() += 1;

@@ -479,9 +479,8 @@ dependencies = [
  "minacalc-rs",
  "pretty_assertions",
  "rayon",
+ "rhythm-open-exchange",
  "rosu-pp",
- "rox",
- "rox-formats",
  "rstest",
  "serde",
  "serde_json",
@@ -774,6 +773,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cadadef317c2f20755a64d7fdc48f9e7178ee6b0e1f7fce33fa60f1d68a276e6"
 
 [[package]]
+name = "rhythm-open-exchange"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f7de3ad6b338b3c121db803e3e22c6b515ad9402d66bc1c97a453ae641975afd"
+dependencies = [
+ "atoi",
+ "bitflags",
+ "compact_str",
+ "memchr",
+ "memmap2",
+ "rkyv",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "thiserror",
+ "tracing",
+ "zstd",
+]
+
+[[package]]
 name = "rkyv"
 version = "0.8.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -819,46 +838,6 @@ checksum = "46d32ddc712a7aa3f5541549cdb8a3ca050a902b654e3e15af7d29849689d14e"
 dependencies = [
  "rosu-map",
  "rosu-mods",
-]
-
-[[package]]
-name = "rox"
-version = "0.7.0"
-dependencies = [
- "bitflags",
- "compact_str",
- "rkyv",
- "rox-macros",
- "serde",
- "thiserror",
-]
-
-[[package]]
-name = "rox-formats"
-version = "0.7.0"
-dependencies = [
- "atoi",
- "bitflags",
- "compact_str",
- "memchr",
- "memmap2",
- "rkyv",
- "rox",
- "rox-macros",
- "serde",
- "serde_json",
- "serde_yaml",
- "tracing",
- "zstd",
-]
-
-[[package]]
-name = "rox-macros"
-version = "0.7.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]

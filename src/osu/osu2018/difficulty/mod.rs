@@ -1,6 +1,6 @@
 use super::Osu2018DifficultyContext;
 use crate::calculator::Rating;
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 
 pub mod evaluators;
 pub mod strain;
@@ -103,7 +103,7 @@ mod tests {
 
     use super::*;
     use approx::assert_abs_diff_eq;
-    use rox_formats::auto_decode;
+    use rox::formats::auto_decode;
     use rstest::{fixture, rstest};
 
     #[fixture]

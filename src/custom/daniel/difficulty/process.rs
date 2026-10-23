@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::cmp::Ordering;
 use std::f64::consts::PI;
 
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 
 use crate::calculator::{CalculatorError, CalculatorResult};
 

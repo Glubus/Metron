@@ -5,7 +5,7 @@ use crate::{
     calculator::{Calculator, CalculatorResult},
     clock_rate::ClockRate,
 };
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 
 #[derive(Debug, Default)]
 pub struct Osu2018DifficultyContext {

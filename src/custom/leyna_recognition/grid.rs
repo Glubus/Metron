@@ -1,4 +1,4 @@
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 
 #[derive(Debug, Clone)]
 pub struct PatternGrid {

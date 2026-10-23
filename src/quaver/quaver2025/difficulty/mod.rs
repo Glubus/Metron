@@ -3,7 +3,7 @@ use self::logic::{difficulty, fingering, ln, manipulation};
 use self::structs::{FingerState, Hand, QuaverDifficulty, StrainSolverData, StrainSolverHitObject};
 use crate::calculator::{Calculator, CalculatorResult};
 use crate::clock_rate::ClockRate;
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 
 pub mod constants;
 pub mod logic;
@@ -314,7 +314,7 @@ fn lane_to_finger(lane: i32, key_count: i32) -> Option<FingerState> {
 mod tests {
     use super::*;
     use approx::assert_abs_diff_eq;
-    use rox_formats::auto_decode;
+    use rox::formats::auto_decode;
     use rstest::*;
 
     #[fixture]

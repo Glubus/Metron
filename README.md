@@ -28,7 +28,7 @@ fn calculate_performance(&self, chart: &RoxChart, difficulty: &Self::Difficulty,
 ```rust
 use metron::calculator::Calculator;
 use metron::etterna::minacalc527::{MinaCalc527, MinaCalcDifficultyContext};
-use rhythm_open_exchange::auto_decode;
+use rox::formats::auto_decode;
 
 let chart = auto_decode("my_chart.osu").unwrap();
 let calc = MinaCalc527;
@@ -57,7 +57,7 @@ println!("Stars: {:.2}", difficulty.stars);
 ```rust
 use metron_rs::calculator::Calculator;
 use metron_rs::custom::daniel::{Daniel, DanielDifficultyContext};
-use rox_formats::auto_decode;
+use rox::formats::auto_decode;
 
 let chart = auto_decode("my_chart.rox").unwrap();
 let difficulty = Daniel

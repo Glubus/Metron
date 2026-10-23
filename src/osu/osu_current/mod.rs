@@ -1,7 +1,7 @@
 use crate::calculator::{Calculator, CalculatorError, CalculatorResult, Rating};
 use crate::osu::osu2018::Osu2018DifficultyContext;
-use rhythm_open_exchange::{Encoder, RoxChart};
-use rox_formats::osu::OsuEncoder;
+use rox::formats::osu::OsuEncoder;
+use rox::{Encoder, RoxChart};
 use std::str::FromStr;
 
 #[derive(Debug)]
@@ -50,7 +50,7 @@ impl Calculator for OsuCurrent {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rox_formats::auto_decode;
+    use rox::formats::auto_decode;
 
     #[test]
     fn test_osu_current_difficulty() {

@@ -7,7 +7,7 @@ pub mod note;
 pub mod process;
 pub mod smoothing;
 
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 
 use crate::calculator::{CalculatorResult, Rating};
 
@@ -55,8 +55,8 @@ pub fn calculate(
 #[cfg(test)]
 mod tests {
     use approx::assert_abs_diff_eq;
-    use rhythm_open_exchange::RoxChart;
-    use rox_formats::auto_decode;
+    use rox::RoxChart;
+    use rox::formats::auto_decode;
 
     use crate::calculator::Calculator;
     use crate::clock_rate::ClockRate;

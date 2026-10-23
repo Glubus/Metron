@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **ROX from crates.io**: Metron depends on `rhythm-open-exchange` 0.7 (library `rox`, one crate with the `formats` feature) instead of the sibling `../Rhythm-Open-Exchange` path crates `rox` and `rox-formats`, so it builds alone and can be published. Imports are `rox::…` and `rox::formats::…` (breaking for code that named the chart types through Metron's old paths).
 - **Etterna / MinaCalc 527**: `minacalc-rs` 527 (Etterna's current calculator). The module, the calculator and the example are renamed `minacalc527` / `MinaCalc527` / `minacalc527` (breaking); `VERSION` is `"527"`. 527 changes chordjack the most (a 4K chordjack reference chart: 40.56 in 515, 34.37 in 527).
 - **MinaCalc input timed like Etterna**: `chart_to_notes` times every row from the chart's first row, as Etterna's `NoteData::SerializeNoteData2` does. MinaCalc cuts time into intervals counted from zero, so a chart's offset used to change its rating (up to 0.21 overall and 1.2 on a skillset on the reference charts). This also keeps every time non-negative.
 

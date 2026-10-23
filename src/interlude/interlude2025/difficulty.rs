@@ -4,7 +4,7 @@ use super::util::{
     calculate_note_total, jack_compensation, ms_to_jack_bpm, ms_to_stream_bpm, strain_func,
     weighted_overall_difficulty,
 };
-use rhythm_open_exchange::RoxChart;
+use rox::RoxChart;
 
 #[derive(Debug)]
 pub struct Interlude2025Difficulty {
